@@ -12,7 +12,7 @@ const Dashboard = {
     if(Utils.isSuperieur()){
       this.renderSuperieur(container);
       return;
-    },
+    }
     this.destroyCharts();
     const annee = this.activeAnnee();
     const eleves = this.elevesAnnee(annee.id);
