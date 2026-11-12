@@ -1,26 +1,24 @@
 /* ============================================================
-   STYLES D'IMPRESSION — GLOBAL v2
-   Gère : bulletins, reçus, fiches élèves/étudiants, rapports
-   Objectif : contenu sur 1 seule page A4, sans pages vides
+   STYLES D'IMPRESSION — v3 (minimal et fiable)
+   Objectif : imprimer la modale visible, 1 seule page, sans blanc
    ============================================================ */
 
 @media print{
 
-  /* ═══ FORMAT DE PAGE ═══ */
+  /* Format A4 */
   @page{
     size: A4 portrait;
-    margin: 12mm 10mm;
+    margin: 10mm;
   }
 
-  /* ═══ RESET GLOBAL ═══ */
+  /* Reset global */
   html, body{
     margin: 0 !important;
     padding: 0 !important;
     background: #fff !important;
-    min-height: 0 !important;
     height: auto !important;
+    min-height: 0 !important;
     overflow: visible !important;
-    font-size: 11px !important;
   }
 
   *{
@@ -32,39 +30,23 @@
     print-color-adjust: exact;
   }
 
-  /* ═══ MASQUER TOUT LE CHROME DE L'APP ═══ */
+  /* Cacher le chrome de l'application */
   .sidebar,
   .sidebar-overlay,
   .topbar,
-  .main-wrapper > header,
   .toast-container,
   .no-print,
+  .modal-backdrop,
+  .modal-header,
+  .modal-footer,
   .btn-close,
   .pagination,
   .nav-tabs,
-  .nav-tabs-custom,
-  #rapportSelector,
-  #rapportFiltres,
-  #rapportLMDSelector,
-  #rapportLMDFiltres,
-  #btnPrint,
-  #btnImprimer,
-  .btn-group,
-  .card-panel:not(.print-keep),
-  .stat-grid,
-  .page-title,
-  .page-sub {
+  .nav-tabs-custom {
     display: none !important;
   }
 
-  /* Ne pas masquer le contenu applicatif */
-  #appContent,
-  #appContent * {
-    visibility: visible !important;
-  }
-
-  /* ═══ MODALES : NEUTRALISATION COMPLÈTE ═══ */
-  /* Bootstrap met .modal en position fixed → ceci casse l'impression */
+  /* ═══ MODALE : NEUTRALISER BOOTSTRAP ═══ */
   .modal,
   .modal.show,
   .modal.fade,
@@ -79,78 +61,48 @@
     bottom: auto !important;
     width: 100% !important;
     max-width: 100% !important;
-    min-height: 0 !important;
+    min-width: 0 !important;
     height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
     margin: 0 !important;
     padding: 0 !important;
     border: none !important;
     border-radius: 0 !important;
     background: transparent !important;
+    box-shadow: none !important;
     overflow: visible !important;
     transform: none !important;
-    box-shadow: none !important;
-    max-height: none !important;
   }
 
-  .modal-backdrop,
-  .modal-dialog-scrollable .modal-body{
-    display: none !important;
-  }
-
-  /* Cas spécial : si la modale est .modal-dialog-scrollable */
-  .modal-dialog-scrollable .modal-content,
-  .modal-dialog-scrollable .modal-body{
-    display: block !important;
-    max-height: none !important;
-    overflow: visible !important;
-  }
-
-  /* ═══ MASQUER LES HEADER/FOOTER DE MODALE ═══ */
-  .modal-header,
-  .modal-footer{
-    display: none !important;
-  }
-
-  /* ═══ DOCUMENTS IMPRIMABLES ═══ */
+  /* ═══ CONTENU IMPRIMABLE ═══ */
   .fiche-eleve,
   .recu,
   .bulletin-a4,
   .rap-doc,
   .attestation{
     display: block !important;
-    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
     background: #fff !important;
     color: #000 !important;
     border: none !important;
     box-shadow: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    max-width: 100% !important;
-    width: 100% !important;
     page-break-inside: avoid;
-    page-break-after: auto;
-    overflow: visible !important;
   }
 
-  /* Quand on imprime un lot, séparer par pages */
-  .bulletin-a4 + .bulletin-a4,
-  .rap-doc + .rap-doc,
+  /* Séparer les documents multiples par page */
   .page-break{
     page-break-before: always;
-  }
-
-  /* Dernière page sans saut */
-  .bulletin-a4:last-child,
-  .rap-doc:last-child{
-    page-break-after: auto;
   }
 
   /* ═══ TABLEAUX ═══ */
   .fiche-eleve table,
   .recu table,
   .bulletin-a4 table,
-  .rap-doc table,
-  .attestation table{
+  .rap-doc table{
     width: 100% !important;
     border-collapse: collapse !important;
     page-break-inside: avoid;
@@ -179,12 +131,9 @@
 
   /* ═══ EN-TÊTE DE DOCUMENT ═══ */
   .entete-doc{
-    display: flex !important;
-    justify-content: space-between !important;
     border-bottom: 2px solid #000 !important;
     padding-bottom: 6px !important;
     margin-bottom: 10px !important;
-    page-break-after: avoid;
   }
 
   .entete-doc-nom,
@@ -202,16 +151,6 @@
     background: #fff !important;
   }
 
-  /* Ancien en-tête (compatibilité) */
-  .fiche-head{
-    display: flex !important;
-    justify-content: space-between !important;
-    border-bottom: 2px solid #000 !important;
-    padding-bottom: 6px !important;
-    margin-bottom: 10px !important;
-    page-break-after: avoid;
-  }
-
   /* ═══ SIGNATURES ═══ */
   .fiche-signatures,
   .recu-signatures,
@@ -219,34 +158,21 @@
   .rap-signature,
   .attestation-signature{
     page-break-inside: avoid;
-    margin-top: 24px !important;
+    margin-top: 20px !important;
   }
 
-  /* ═══ ÉVITER LES BLANCS AU DÉBUT ═══ */
-  /* Le premier élément imprimable doit coller en haut */
-  .modal-body > *:first-child,
-  .fiche-eleve > *:first-child,
-  .recu > *:first-child,
-  .bulletin-a4 > *:first-child,
-  .rap-doc > *:first-child{
-    margin-top: 0 !important;
-    padding-top: 0 !important;
+  /* ═══ MODE "DOCUMENT ISOLÉ" ═══
+     Activé par JS via body.printing-doc */
+  body.printing-doc > *:not(.modal){
+    display: none !important;
   }
 
-  /* ═══ SUPPRIMER LES POSITIONS FIXES RÉSIDUELLES ═══ */
-  .modal-dialog-centered{
+  body.printing-doc .modal{
     display: block !important;
-    min-height: 0 !important;
-    align-items: initial !important;
-    justify-content: initial !important;
   }
 
-  /* ═══ LIENS ═══ */
-  a{ color: #000 !important; text-decoration: none !important; }
-
-  /* ═══ IMAGES ═══ */
-  img{
-    max-width: 100% !important;
-    page-break-inside: avoid;
+  body.printing-doc .main-wrapper,
+  body.printing-doc .content{
+    display: none !important;
   }
 }
