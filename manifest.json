@@ -1,0 +1,65 @@
+{
+  "name": "GestSchool — Gestion Scolaire",
+  "short_name": "GestSchool",
+  "description": "Application de gestion d'établissement scolaire et universitaire",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F4F6FA",
+  "theme_color": "#0B2545",
+  "lang": "fr",
+  "dir": "ltr",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "assets/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/images/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Tableau de bord",
+      "short_name": "Dashboard",
+      "url": "./app.html#/dashboard",
+      "icons": [{"src": "assets/images/icon-192.png", "sizes": "192x192"}]
+    },
+    {
+      "name": "Élèves / Étudiants",
+      "short_name": "Élèves",
+      "url": "./app.html#/eleves",
+      "icons": [{"src": "assets/images/icon-192.png", "sizes": "192x192"}]
+    },
+    {
+      "name": "Paiements",
+      "short_name": "Paiements",
+      "url": "./app.html#/paiements",
+      "icons": [{"src": "assets/images/icon-192.png", "sizes": "192x192"}]
+    }
+  ]
+}

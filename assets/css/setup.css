@@ -1,0 +1,136 @@
+/* ============================================================
+   Écran de bienvenue (premier démarrage — choix du type)
+   ============================================================ */
+.setup-overlay{
+  position:fixed;
+  inset:0;
+  background:linear-gradient(135deg,#0B2545 0%,#1D4ED8 100%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:1.5rem;
+  z-index:9999;
+  overflow-y:auto;
+}
+.setup-card{
+  max-width:900px;
+  width:100%;
+  background:#fff;
+  border-radius:20px;
+  padding:2.5rem 2rem;
+  box-shadow:0 25px 60px rgba(0,0,0,.4);
+}
+.setup-header{
+  text-align:center;
+  margin-bottom:2rem;
+}
+.setup-logo{
+  width:72px;height:72px;border-radius:16px;
+  background:#1D4ED8;
+  color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:2rem;
+  margin:0 auto 1rem;
+}
+.setup-header h4{
+  font-weight:700;
+  margin-bottom:.5rem;
+}
+.setup-header p{
+  color:#6B7280;
+  font-size:.92rem;
+  margin-bottom:0;
+}
+.setup-choices{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1.25rem;
+  margin-bottom:1.5rem;
+}
+.setup-choice{
+  background:#F9FAFB;
+  border:2px solid #E5E7EB;
+  border-radius:14px;
+  padding:1.75rem 1.25rem;
+  cursor:pointer;
+  transition:all .2s;
+  text-align:center;
+}
+.setup-choice:hover{
+  border-color:#1D4ED8;
+  transform:translateY(-3px);
+  box-shadow:0 12px 24px rgba(29,78,216,.15);
+}
+.setup-choice.selected{
+  border-color:#1D4ED8;
+  background:#EFF6FF;
+  box-shadow:0 12px 24px rgba(29,78,216,.2);
+}
+.setup-choice-icon{
+  width:64px;height:64px;border-radius:14px;
+  background:#DBEAFE;
+  color:#1D4ED8;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.85rem;
+  margin:0 auto .85rem;
+}
+.setup-choice.selected .setup-choice-icon{
+  background:#1D4ED8;
+  color:#fff;
+}
+.setup-choice-title{
+  font-weight:700;
+  font-size:1.05rem;
+  margin-bottom:.35rem;
+}
+.setup-choice-desc{
+  font-size:.82rem;
+  color:#6B7280;
+  line-height:1.4;
+}
+.setup-choice-badge{
+  display:inline-block;
+  font-size:.7rem;
+  padding:.15rem .5rem;
+  border-radius:6px;
+  background:#FEF3C7;
+  color:#92400E;
+  font-weight:600;
+  margin-top:.5rem;
+}
+.setup-footer{
+  text-align:center;
+  padding-top:1rem;
+  border-top:1px solid #E5E7EB;
+}
+.setup-footer p{
+  font-size:.8rem;
+  color:#6B7280;
+  margin-bottom:.75rem;
+}
+.setup-btn{
+  background:#1D4ED8;
+  color:#fff;
+  border:none;
+  padding:.7rem 2rem;
+  border-radius:10px;
+  font-weight:600;
+  font-size:.92rem;
+  transition:background .15s;
+}
+.setup-btn:hover:not(:disabled){
+  background:#1e40af;
+}
+.setup-btn:disabled{
+  background:#9CA3AF;
+  cursor:not-allowed;
+  opacity:.6;
+}
+
+@media (max-width:600px){
+  .setup-card{padding:1.75rem 1.25rem;}
+  .setup-choices{grid-template-columns:1fr;gap:1rem;}
+  .setup-choice{padding:1.25rem 1rem;}
+  .setup-choice-icon{width:52px;height:52px;font-size:1.5rem;}
+  .setup-choice-title{font-size:.95rem;}
+}

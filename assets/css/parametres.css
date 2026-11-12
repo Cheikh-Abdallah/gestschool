@@ -1,0 +1,58 @@
+/* Spécifique module paramètres */
+.nav-tabs-custom{border-bottom:2px solid var(--border);}
+.nav-tabs-custom .nav-link{
+  border:none;color:var(--muted);font-weight:500;font-size:.88rem;
+  padding:.6rem 1rem;border-bottom:2px solid transparent;margin-bottom:-2px;
+}
+.nav-tabs-custom .nav-link:hover{color:var(--royal);}
+.nav-tabs-custom .nav-link.active{
+  color:var(--royal);background:transparent;border-bottom-color:var(--royal);font-weight:600;
+}
+
+/* Uploader logo */
+.logo-uploader{
+  text-align:center;
+  border:1px dashed var(--border);
+  border-radius:12px;
+  padding:1.25rem;
+  background:#F9FAFB;
+}
+.logo-preview{
+  width:120px;height:120px;margin:0 auto;
+  border-radius:12px;
+  background:#fff;
+  border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--muted);
+  font-size:2.5rem;
+  overflow:hidden;
+}
+.logo-preview img{
+  width:100%;height:100%;object-fit:contain;
+}
+
+/* Cartes données */
+.data-card{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:1.25rem;
+  height:100%;
+  transition:box-shadow .15s;
+}
+.data-card:hover{box-shadow:var(--shadow);}
+.data-card.danger{border-color:#FECACA;}
+.data-card h6{font-size:.95rem;font-weight:700;margin-bottom:.5rem;}
+
+/* Formulaires */
+.form-label{
+  font-size:.82rem;
+  font-weight:500;
+  color:var(--text);
+  margin-bottom:.3rem;
+}
+
+@media (max-width:768px){
+  .logo-uploader{padding:1rem;}
+  .logo-preview{width:90px;height:90px;font-size:2rem;}
+}

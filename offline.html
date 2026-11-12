@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hors connexion · GestSchool</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <style>
+    body{
+      margin:0;min-height:100vh;
+      display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(135deg,#0B2545 0%,#1D4ED8 100%);
+      font-family:'Segoe UI',system-ui,sans-serif;
+      color:#fff;text-align:center;padding:1.5rem;
+    }
+    .box{max-width:420px;}
+    .icon{font-size:5rem;margin-bottom:1rem;opacity:.85;}
+    h1{font-size:1.5rem;margin:0 0 .5rem;font-weight:700;}
+    p{font-size:.95rem;opacity:.85;line-height:1.6;margin-bottom:1.5rem;}
+    button{
+      background:#fff;color:#1D4ED8;border:none;
+      padding:.75rem 2rem;border-radius:10px;
+      font-weight:600;font-size:.95rem;cursor:pointer;
+      transition:transform .15s;
+    }
+    button:hover{transform:scale(1.05);}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="icon">📡</div>
+    <h1>Vous êtes hors connexion</h1>
+    <p>
+      GestSchool n'a pas pu charger cette page car vous êtes déconnecté(e).<br>
+      Les pages déjà visitées restent accessibles.
+    </p>
+    <button onclick="location.href='./index.html'">Retour à l'accueil</button>
+  </div>
+</body>
+</html>

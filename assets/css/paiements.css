@@ -1,0 +1,57 @@
+/* Spécifique module paiements */
+.search-inline{
+  display:flex;align-items:center;gap:.5rem;
+  background:var(--bg);border:1px solid var(--border);border-radius:9px;
+  padding:.35rem .7rem;
+}
+.search-inline i{color:var(--muted);font-size:.9rem;}
+.search-inline input{border:none;background:transparent;outline:none;flex:1;font-size:.85rem;}
+
+#tblPay thead th{
+  font-size:.75rem;text-transform:uppercase;color:var(--muted);
+  font-weight:600;letter-spacing:.3px;white-space:nowrap;
+  background:#F9FAFB;border-bottom:1px solid var(--border);
+}
+#tblPay tbody td{font-size:.86rem;vertical-align:middle;}
+
+.row-annule{opacity:.6;}
+
+/* Onglets custom */
+.nav-tabs-custom{border-bottom:2px solid var(--border);}
+.nav-tabs-custom .nav-link{
+  border:none;color:var(--muted);font-weight:500;font-size:.88rem;
+  padding:.6rem 1rem;border-bottom:2px solid transparent;margin-bottom:-2px;
+}
+.nav-tabs-custom .nav-link:hover{color:var(--royal);}
+.nav-tabs-custom .nav-link.active{
+  color:var(--royal);background:transparent;border-bottom-color:var(--royal);font-weight:600;
+}
+
+/* Modale paiement */
+.modal-pay .modal-body{max-height: calc(100vh - 200px);overflow-y:auto;}
+
+/* Reçu */
+.recu{font-size:.9rem;}
+.recu-head{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  border-bottom:2px solid var(--royal);padding-bottom:.75rem;
+}
+.recu-num{
+  display:inline-block;background:#EFF6FF;color:var(--royal);
+  font-weight:700;padding:.35rem .7rem;border-radius:8px;font-size:.85rem;
+}
+.recu-signatures{
+  display:flex;justify-content:space-between;margin-top:1.5rem;
+  font-size:.82rem;text-align:center;
+}
+
+@media (max-width:768px){
+  .modal-pay .modal-body{max-height: calc(100vh - 170px);}
+  .recu-head{flex-direction:column;gap:.5rem;}
+}
+
+@media (max-width:576px){
+  #modalPay .modal-dialog{margin:0;max-width:100%;height:100vh;}
+  #modalPay .modal-content{height:100vh;border-radius:0;}
+  .modal-pay .modal-body{max-height: calc(100vh - 130px);}
+}

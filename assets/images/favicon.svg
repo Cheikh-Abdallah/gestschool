@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B2545"/>
+      <stop offset="100%" stop-color="#1D4ED8"/>
+    </linearGradient>
+    <linearGradient id="ribbonL" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#DBEAFE"/>
+    </linearGradient>
+    <linearGradient id="ribbonR" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#60A5FA"/>
+      <stop offset="100%" stop-color="#3B82F6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fond arrondi bleu -->
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+
+  <!-- ═══ MORTIER UNIVERSITAIRE ═══ -->
+  <g transform="translate(32 22)">
+    <!-- Plateau supérieur -->
+    <path d="M-18 0 L0 -8 L18 0 L0 8 Z" fill="#ffffff"/>
+    <!-- Ruban gauche -->
+    <path d="M-16 1 L0 -5 L0 14 L-16 18 Z" fill="url(#ribbonL)"/>
+    <!-- Ruban droit -->
+    <path d="M16 1 L0 -5 L0 14 L16 18 Z" fill="url(#ribbonR)"/>
+    <!-- Pompon fil -->
+    <line x1="18" y1="0" x2="18" y2="12" stroke="#F59E0B" stroke-width="1.4" stroke-linecap="round"/>
+    <!-- Pompon boule -->
+    <circle cx="18" cy="13" r="2.6" fill="#F59E0B"/>
+    <!-- Reflet pompon -->
+    <circle cx="17.2" cy="12.2" r="0.8" fill="#FEF3C7" opacity="0.9"/>
+  </g>
+
+  <!-- ═══ LIVRE OUVERT ═══ -->
+  <g transform="translate(32 46)">
+    <!-- Page gauche -->
+    <path d="M-16 -3 Q-16 -5 -14 -5 L-2 -5 Q0 -5 0 -3 L0 8 Q0 6 -2 6 L-14 6 Q-16 6 -16 8 Z" fill="#ffffff"/>
+    <!-- Page droite -->
+    <path d="M16 -3 Q16 -5 14 -5 L2 -5 Q0 -5 0 -3 L0 8 Q0 6 2 6 L14 6 Q16 6 16 8 Z" fill="#E0E7FF"/>
+    <!-- Reliure centrale -->
+    <line x1="0" y1="-4" x2="0" y2="7" stroke="#1D4ED8" stroke-width="0.8" opacity="0.6"/>
+
+    <!-- Lignes de texte (page gauche) -->
+    <line x1="-12" y1="0" x2="-3" y2="0" stroke="#1D4ED8" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+    <line x1="-12" y1="2.5" x2="-3" y2="2.5" stroke="#1D4ED8" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+    <line x1="-12" y1="5" x2="-6" y2="5" stroke="#1D4ED8" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+
+    <!-- Lignes de texte (page droite) -->
+    <line x1="3" y1="0" x2="12" y2="0" stroke="#1D4ED8" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+    <line x1="3" y1="2.5" x2="12" y2="2.5" stroke="#1D4ED8" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+    <line x1="3" y1="5" x2="9" y2="5" stroke="#1D4ED8" stroke-width="0.9" opacity="0.35" stroke-linecap="round"/>
+  </g>
+
+  <!-- Étoiles décoratives -->
+  <circle cx="10" cy="12" r="1.2" fill="#F59E0B" opacity="0.9"/>
+  <circle cx="54" cy="14" r="1" fill="#60A5FA" opacity="0.9"/>
+  <circle cx="8" cy="52" r="1" fill="#ffffff" opacity="0.5"/>
+  <circle cx="56" cy="54" r="1.2" fill="#60A5FA" opacity="0.7"/>
+</svg>

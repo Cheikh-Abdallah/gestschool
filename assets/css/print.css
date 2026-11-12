@@ -1,0 +1,10 @@
+@media print{
+  .sidebar,.topbar,.sidebar-overlay,.toast-container,
+  .no-print{display:none !important;}
+  .main-wrapper{margin-left:0 !important;}
+  .content{padding:0;}
+  body{background:#fff;}
+  .card-panel,.stat-card{box-shadow:none;border:1px solid #ddd;}
+  .chart-box{height:180px;}
+  @page{size:A4;margin:12mm;}
+}

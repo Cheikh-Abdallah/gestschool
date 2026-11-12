@@ -1,0 +1,66 @@
+/* Spécifique module matières */
+.search-inline{
+  display:flex;align-items:center;gap:.5rem;
+  background:var(--bg);border:1px solid var(--border);border-radius:9px;
+  padding:.35rem .7rem;
+}
+.search-inline i{color:var(--muted);font-size:.9rem;}
+.search-inline input{border:none;background:transparent;outline:none;flex:1;font-size:.85rem;}
+
+#tblMat thead th{
+  font-size:.75rem;text-transform:uppercase;color:var(--muted);
+  font-weight:600;letter-spacing:.3px;white-space:nowrap;
+  background:#F9FAFB;border-bottom:1px solid var(--border);
+}
+#tblMat tbody td{font-size:.86rem;vertical-align:middle;}
+
+/* Modale formulaire matière */
+.modal-mat .modal-body{
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.modal-mat .modal-body::-webkit-scrollbar{width:8px;}
+.modal-mat .modal-body::-webkit-scrollbar-track{background:#F4F6FA;border-radius:4px;}
+.modal-mat .modal-body::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:4px;}
+.modal-mat .modal-body::-webkit-scrollbar-thumb:hover{background:#94A3B8;}
+
+/* Grille de checkboxes classes */
+.classes-checkbox-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));
+  gap:.5rem;
+  border:1px solid var(--border);
+  border-radius:9px;
+  padding:.75rem;
+  background:#F9FAFB;
+  max-height:200px;
+  overflow-y:auto;
+}
+.class-checkbox{
+  display:flex;
+  align-items:center;
+  gap:.4rem;
+  padding:.35rem .55rem;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:7px;
+  cursor:pointer;
+  font-size:.83rem;
+  transition:all .12s;
+}
+.class-checkbox:hover{border-color:var(--royal);background:#EFF6FF;}
+.class-checkbox input[type=checkbox]{margin:0;cursor:pointer;accent-color:var(--royal);}
+.class-checkbox input[type=checkbox]:checked + span{color:var(--royal);font-weight:600;}
+
+@media (max-width:768px){
+  .modal-mat .modal-body{max-height: calc(100vh - 170px);}
+  .modal-mat .modal-footer .btn{flex:1;}
+}
+
+@media (max-width:576px){
+  #modalMat .modal-dialog{margin:0;max-width:100%;height:100vh;}
+  #modalMat .modal-content{height:100vh;border-radius:0;}
+  .modal-mat .modal-body{max-height: calc(100vh - 130px);}
+  .classes-checkbox-grid{grid-template-columns:1fr 1fr;max-height:180px;}
+}

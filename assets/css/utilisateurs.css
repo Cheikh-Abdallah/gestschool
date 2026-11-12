@@ -1,0 +1,47 @@
+/* Spécifique module utilisateurs */
+.search-inline{
+  display:flex;align-items:center;gap:.5rem;
+  background:var(--bg);border:1px solid var(--border);border-radius:9px;
+  padding:.35rem .7rem;
+}
+.search-inline i{color:var(--muted);font-size:.9rem;}
+.search-inline input{border:none;background:transparent;outline:none;flex:1;font-size:.85rem;}
+
+table thead th{
+  font-size:.75rem;text-transform:uppercase;color:var(--muted);
+  font-weight:600;letter-spacing:.3px;white-space:nowrap;
+  background:#F9FAFB;border-bottom:1px solid var(--border);
+}
+
+/* Rôles */
+.roles-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));
+  gap:1rem;
+}
+.role-card{
+  transition:all .15s;
+  background:#fff;
+}
+.role-card:hover{
+  box-shadow:var(--shadow);
+  transform:translateY(-2px);
+}
+.role-icon{
+  width:44px;height:44px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;flex-shrink:0;
+}
+
+/* Modales */
+.modal-user .modal-body{max-height: calc(100vh - 200px);overflow-y:auto;}
+
+@media (max-width:768px){
+  .roles-grid{grid-template-columns:1fr;}
+  .modal-user .modal-body{max-height: calc(100vh - 170px);}
+}
+
+@media (max-width:576px){
+  #modalUser .modal-dialog{margin:0;max-width:100%;height:100vh;}
+  #modalUser .modal-content{height:100vh;border-radius:0;}
+}

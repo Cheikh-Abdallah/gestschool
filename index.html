@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- ═══════════════ FAVICON ═══════════════ -->
+<link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+<link rel="apple-touch-icon" href="assets/images/favicon.svg">
+<meta name="theme-color" content="#0B2545">
+<meta name="apple-mobile-web-app-title" content="GestSchool">
+<meta name="application-name" content="GestSchool">
+<!-- ═══════════════════════════════════════ -->
+ <!-- ═══════════════ PWA MANIFEST ═══════════════ -->
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon.png">
+<!-- ═══════════════════════════════════════════ -->
+  <title>Connexion · GestSchool</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    body{min-height:100vh;display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(135deg,#0B2545 0%,#1D4ED8 100%);}
+    .login-card{max-width:420px;width:100%;background:#fff;border-radius:16px;
+      padding:2.2rem;box-shadow:0 20px 50px rgba(0,0,0,.25);}
+    .login-logo{width:64px;height:64px;border-radius:14px;background:#1D4ED8;
+      display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.8rem;margin:0 auto 1rem;}
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="login-logo"><i class="bi bi-mortarboard-fill"></i></div>
+    <h4 class="text-center fw-bold mb-1">GestSchool</h4>
+    <p class="text-center text-muted small mb-4">Gestion scolaire · École Cheikh Anta Diop</p>
+
+    <form id="loginForm" novalidate>
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Identifiant</label>
+        <input type="text" class="form-control" id="login" value="admin" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Mot de passe</label>
+        <input type="password" class="form-control" id="password" value="admin123" required>
+      </div>
+      <div id="loginError" class="alert alert-danger py-2 small d-none"></div>
+      <button class="btn btn-primary w-100 fw-semibold" type="submit">
+        <i class="bi bi-box-arrow-in-right me-1"></i> Se connecter
+      </button>
+    </form>
+    <div class="mt-4 small text-muted text-center">
+      <strong>Comptes démo :</strong><br>
+      admin / admin123 · directeur / dir123 · secretaire / sec123<br>
+      comptable / com123 · enseignant / ens123 · surveillant / surv123
+    </div>
+  </div>
+
+  <script src="assets/js/core/storage.js"></script>
+  <script src="assets/js/core/db.js"></script>
+  <script src="assets/js/core/utils.js"></script>
+  <script src="assets/js/core/auth.js"></script>
+  <script>
+    // Init DB si vide + soumission formulaire
+    DB.init();
+    document.getElementById('loginForm').addEventListener('submit', e=>{
+      e.preventDefault();
+      const u = document.getElementById('login').value.trim();
+      const p = document.getElementById('password').value;
+      const err = document.getElementById('loginError');
+      const user = Auth.login(u,p);
+      if(user){ location.href='app.html'; }
+      else { err.textContent='Identifiant ou mot de passe incorrect.'; err.classList.remove('d-none'); }
+    });
+  </script>
+  <!-- ═══════════════ SERVICE WORKER ═══════════════ -->
+<script>
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', ()=>{
+      navigator.serviceWorker.register('./service-worker.js')
+        .then(reg => console.log('[App] Service Worker enregistré', reg.scope))
+        .catch(err => console.warn('[App] Service Worker non enregistré', err));
+    });
+  }
+</script>
+</body>
+</html>

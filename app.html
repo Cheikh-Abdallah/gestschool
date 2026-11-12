@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- ═══════════════ FAVICON ═══════════════ -->
+<link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+<link rel="apple-touch-icon" href="assets/images/favicon.svg">
+<meta name="theme-color" content="#0B2545">
+<meta name="apple-mobile-web-app-title" content="GestSchool">
+<meta name="application-name" content="GestSchool">
+
+<!-- ═══════════════ PWA MANIFEST ═══════════════ -->
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon.png">
+<!-- ═══════════════════════════════════════════ -->
+  <title>GestSchool · Tableau de bord</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Styles globaux -->
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/responsive.css">
+  <link rel="stylesheet" href="assets/css/print.css">
+
+  <!-- Styles par module -->
+  <link rel="stylesheet" href="assets/css/eleves.css">
+  <link rel="stylesheet" href="assets/css/enseignants.css">
+  <link rel="stylesheet" href="assets/css/classes.css">
+  <link rel="stylesheet" href="assets/css/matieres.css">
+  <link rel="stylesheet" href="assets/css/notes.css">
+  <link rel="stylesheet" href="assets/css/absences.css">
+  <link rel="stylesheet" href="assets/css/paiements.css">
+  <link rel="stylesheet" href="assets/css/bulletins.css">
+  <link rel="stylesheet" href="assets/css/annees.css">
+  <link rel="stylesheet" href="assets/css/emploi.css">
+  <link rel="stylesheet" href="assets/css/utilisateurs.css">
+  <link rel="stylesheet" href="assets/css/parametres.css">
+  <link rel="stylesheet" href="assets/css/rapports.css">
+  <link rel="stylesheet" href="assets/css/setup.css">
+  <link rel="stylesheet" href="assets/css/superieur.css">
+  <link rel="stylesheet" href="assets/css/bulletinsLMD.css">
+  <link rel="stylesheet" href="assets/css/rapportsLMD.css">
+</head>
+<body>
+  <!-- Overlay mobile -->
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-brand">
+      <i class="bi bi-mortarboard-fill"></i>
+      <div>
+        <div class="brand-title">GestSchool</div>
+        <div class="brand-sub">Gestion scolaire</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav">
+      <!-- Rempli par JS -->
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn btn-sm btn-outline-light w-100" id="btnLogout">
+        <i class="bi bi-box-arrow-left me-1"></i> Déconnexion
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <button class="btn btn-light btn-sm d-lg-none" id="btnToggleSidebar">
+        <i class="bi bi-list fs-5"></i>
+      </button>
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Recherche globale…" id="globalSearch">
+      </div>
+      <div class="topbar-right">
+        <span class="badge-annee" id="anneeBadge"></span>
+        <button class="icon-btn position-relative" title="Notifications">
+          <i class="bi bi-bell"></i>
+          <span class="notif-dot"></span>
+        </button>
+        <div class="user-chip">
+          <div class="avatar" id="userAvatar">A</div>
+          <div class="user-info">
+            <div class="user-name" id="userName">—</div>
+            <div class="user-role" id="userRole">—</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="content" id="appContent">
+      <!-- Contenu dynamique injecté ici -->
+    </main>
+  </div>
+
+  <!-- Toasts -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+
+  <!-- ============================================= -->
+  <!-- Librairies externes                            -->
+  <!-- ============================================= -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- ============================================= -->
+  <!-- Cœur de l'application                          -->
+  <!-- ============================================= -->
+  <script src="assets/js/core/storage.js"></script>
+  <script src="assets/js/core/db.js"></script>
+  <script src="assets/js/core/utils.js"></script>
+  <script src="assets/js/core/auth.js"></script>
+  <script src="assets/js/core/notifications.js"></script>
+  <script src="assets/js/core/router.js"></script>
+
+  <!-- ============================================= -->
+  <!-- Modules métier (ordre = ordre des dépendances) -->
+  <!-- ============================================= -->
+   <script src="assets/js/core/setup.js"></script>
+  <script src="assets/js/modules/dashboard.js"></script>
+  <script src="assets/js/modules/eleves.js"></script>
+  <script src="assets/js/modules/enseignants.js"></script>
+  <script src="assets/js/modules/classes.js"></script>
+  <script src="assets/js/modules/matieres.js"></script>
+  <script src="assets/js/modules/notes.js"></script>
+  <script src="assets/js/modules/absences.js"></script>
+  <script src="assets/js/modules/paiements.js"></script>
+  <script src="assets/js/modules/bulletins.js"></script>
+  <script src="assets/js/modules/annees.js"></script>
+  <script src="assets/js/modules/emploi.js"></script>
+  <script src="assets/js/modules/utilisateurs.js"></script>
+  <script src="assets/js/modules/parametres.js"></script>
+  <script src="assets/js/modules/rapports.js"></script>
+  <script src="assets/js/modules/filieres.js"></script>
+  <script src="assets/js/modules/etudiants.js"></script>
+    <script src="assets/js/modules/groupes.js"></script>
+    <script src="assets/js/modules/niveaux.js"></script>
+    <script src="assets/js/modules/ue.js"></script>
+    <script src="assets/js/modules/ecue.js"></script>
+    <script src="assets/js/modules/notesLMD.js"></script>
+<script src="assets/js/modules/bulletinsLMD.js"></script>
+<script src="assets/js/modules/rapportsLMD.js"></script>
+
+  <!-- ============================================= -->
+  <!-- Bootstrap de l'application (doit être en dernier) -->
+  <!-- ============================================= -->
+  <script src="assets/js/app.js"></script>
+
+  <!-- ═══════════════ SERVICE WORKER ═══════════════ -->
+<script>
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', ()=>{
+      navigator.serviceWorker.register('./service-worker.js')
+        .then(reg => console.log('[App] Service Worker enregistré', reg.scope))
+        .catch(err => console.warn('[App] Service Worker non enregistré', err));
+    });
+  }
+</script>
+</body>
+</html>

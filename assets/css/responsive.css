@@ -1,0 +1,28 @@
+/* Tablettes */
+@media (max-width:1200px){
+  .stat-grid{grid-template-columns:repeat(2,1fr);}
+  .grid-4{grid-template-columns:repeat(2,1fr);}
+  .grid-2{grid-template-columns:1fr;}
+}
+
+/* Mobiles */
+@media (max-width:768px){
+  :root{--sidebar-w:280px;}
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main-wrapper{margin-left:0;}
+  .search-box{display:none;}
+  .user-info{display:none;}
+  .badge-annee{display:none;}
+  .content{padding:1rem;}
+  .stat-grid{grid-template-columns:1fr 1fr;gap:.75rem;}
+  .grid-4{grid-template-columns:1fr;}
+  .grid-2{grid-template-columns:1fr;}
+  .stat-value{font-size:1.25rem;}
+  .stat-icon{width:40px;height:40px;font-size:1.1rem;}
+  .chart-box{height:220px;}
+}
+
+@media (max-width:400px){
+  .stat-grid{grid-template-columns:1fr;}
+}

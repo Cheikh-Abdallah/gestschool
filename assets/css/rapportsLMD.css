@@ -1,0 +1,43 @@
+/* Attestation de réussite */
+.attestation{
+  font-size:12px;
+  line-height:1.7;
+}
+.attestation-body{
+  padding:1rem 2rem;
+}
+.attestation-etudiant{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:.4rem 1.5rem;
+  background:#F9FAFB;
+  border:1px solid var(--border);
+  border-left:3px solid var(--royal);
+  border-radius:6px;
+  padding:.85rem 1.25rem;
+  margin:1rem 0;
+  font-size:11.5px;
+}
+.attestation-date{
+  text-align:right;
+  margin-top:2rem;
+  font-style:italic;
+  font-size:11.5px;
+}
+.attestation-signature{
+  margin-top:2.5rem;
+  display:flex;
+  justify-content:flex-end;
+  padding-right:3rem;
+}
+
+@media print{
+  .attestation-etudiant{
+    background:#F9FAFB !important;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+  .attestation{
+    page-break-inside:avoid;
+  }
+}

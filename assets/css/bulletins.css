@@ -1,0 +1,216 @@
+/* ===== BULLETIN A4 ===== */
+.bulletin-a4{
+  background:#fff;
+  max-width:210mm;
+  min-height:290mm;
+  margin:0 auto 1.5rem;
+  padding:14mm 12mm;
+  border:1px solid var(--border);
+  box-shadow:var(--shadow);
+  font-size:12px;
+  color:#000;
+  font-family:'Inter','Segoe UI',Arial,sans-serif;
+}
+
+/* EN-TÊTE */
+.bul-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  border-bottom:2px solid var(--primary);
+  padding-bottom:8px;
+  margin-bottom:8px;
+}
+.bul-head-left{display:flex;gap:10px;align-items:center;}
+.bul-logo{
+  width:50px;height:50px;border-radius:8px;background:var(--royal);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:1.5rem;overflow:hidden;
+}
+.bul-logo img{width:100%;height:100%;object-fit:cover;}
+.bul-ecole{font-weight:700;font-size:14px;color:var(--primary);}
+.bul-ecole-sub{font-size:10px;color:#555;line-height:1.3;}
+.bul-head-right{text-align:right;}
+.bul-annee{font-size:11px;color:#333;font-weight:600;}
+.bul-periode{
+  font-size:11px;color:var(--royal);font-weight:700;
+  background:#EFF6FF;padding:2px 8px;border-radius:4px;
+  display:inline-block;margin-top:3px;
+}
+
+/* TITRE */
+.bul-title{
+  text-align:center;
+  font-size:15px;
+  font-weight:800;
+  letter-spacing:2px;
+  color:var(--primary);
+  margin:10px 0;
+  padding:5px 0;
+  background:linear-gradient(90deg,transparent, #EFF6FF, transparent);
+}
+
+/* INFOS ÉLÈVE */
+.bul-infos{
+  background:#F9FAFB;
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:8px 12px;
+  margin-bottom:10px;
+}
+.bul-infos-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:4px 12px;
+  font-size:11px;
+}
+.bul-rang{color:var(--royal);font-size:13px;}
+
+/* TABLEAU NOTES */
+.bul-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:11px;
+  margin-bottom:10px;
+}
+.bul-table th{
+  background:var(--primary);
+  color:#fff;
+  padding:5px 6px;
+  text-align:left;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
+.bul-table td{
+  padding:4px 6px;
+  border-bottom:1px solid #e5e7eb;
+  vertical-align:middle;
+}
+.bul-table tbody tr:nth-child(even){background:#F9FAFB;}
+.bul-table tfoot td{
+  background:#EFF6FF;
+  border-top:2px solid var(--primary);
+  padding:6px;
+  font-size:12px;
+}
+.bul-moy-gen{color:var(--royal);font-size:13px;}
+
+/* RÉSULTATS */
+.bul-resultats{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:6px;
+  margin:10px 0;
+}
+.bul-res-col{
+  background:#F9FAFB;
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:6px 4px;
+  text-align:center;
+}
+.bul-res-label{
+  font-size:9px;
+  text-transform:uppercase;
+  color:#666;
+  font-weight:600;
+  letter-spacing:.3px;
+  margin-bottom:2px;
+}
+.bul-res-value{font-size:12px;font-weight:700;}
+.bul-moy-gen-big{color:var(--royal);font-size:14px;}
+.bul-mention{color:var(--warning);}
+.bul-decision{color:var(--success);}
+
+/* APPRÉCIATION */
+.bul-appreciation{
+  border:1px solid var(--border);
+  border-left:3px solid var(--royal);
+  padding:6px 10px;
+  margin:8px 0;
+  background:#F9FAFB;
+  border-radius:4px;
+}
+.bul-appr-title{
+  font-size:10px;
+  text-transform:uppercase;
+  font-weight:700;
+  color:var(--royal);
+  margin-bottom:3px;
+}
+.bul-appr-text{font-size:11px;font-style:italic;color:#333;}
+
+.bul-travail{
+  display:flex;
+  gap:30px;
+  font-size:11px;
+  margin:8px 0;
+}
+
+/* SIGNATURES */
+.bul-signatures{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-top:20px;
+  font-size:10px;
+  text-align:center;
+}
+.bul-sign-label{font-weight:600;margin-bottom:4px;}
+.bul-sign-name{min-height:14px;font-size:10px;color:#555;}
+.bul-sign-line{
+  border-top:1px solid #000;
+  margin-top:28px;
+}
+
+/* FOOTER */
+.bul-footer{
+  text-align:center;
+  font-size:9px;
+  color:#999;
+  margin-top:12px;
+  padding-top:6px;
+  border-top:1px dashed #ddd;
+}
+
+/* ===== PRINT ===== */
+@media print{
+  @page{
+    size:A4;
+    margin:0;
+  }
+  body *{visibility:hidden;}
+  #bulApercu, #bulApercu *{visibility:visible;}
+  #bulApercu{
+    position:absolute;
+    left:0;top:0;
+    width:100%;
+  }
+  .bulletin-a4{
+    box-shadow:none !important;
+    border:none !important;
+    margin:0 !important;
+    padding:12mm 10mm !important;
+    max-width:none !important;
+    min-height:auto !important;
+    page-break-after:always;
+    page-break-inside:avoid;
+  }
+  .bulletin-a4:last-child{page-break-after:auto;}
+  .page-break{page-break-before:always;}
+  .no-print, .sidebar, .topbar, .toast-container{display:none !important;}
+}
+
+/* Écrans moyens */
+@media (max-width:992px){
+  .bulletin-a4{padding:10mm 8mm;font-size:11px;}
+  .bul-infos-grid{grid-template-columns:repeat(2,1fr);}
+  .bul-resultats{grid-template-columns:repeat(3,1fr);}
+}
+
+@media (max-width:576px){
+  .bulletin-a4{padding:8mm 6mm;font-size:10px;}
+  .bul-resultats{grid-template-columns:repeat(2,1fr);}
+  .bul-signatures{grid-template-columns:1fr;gap:15px;}
+}

@@ -1,0 +1,19 @@
+/* Relevé de notes LMD */
+.releve-lmd{font-size:11px;}
+.releve-lmd .bul-infos-grid{grid-template-columns:repeat(2,1fr);}
+.releve-table .ue-header{
+  background:#EFF6FF;
+  border-top:2px solid var(--royal);
+  font-size:11px;
+}
+.releve-table .ecue-row{
+  font-size:10.5px;
+  color:#444;
+}
+.releve-table .ecue-row td.pl-4{padding-left:1.5rem;}
+.releve-lmd .bul-resultats{grid-template-columns:repeat(3,1fr);}
+
+@media print{
+  .releve-lmd{font-size:10px;}
+  .releve-table .ue-header{background:#EFF6FF !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
