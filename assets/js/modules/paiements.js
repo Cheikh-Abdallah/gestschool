@@ -819,24 +819,16 @@ const Paiements = {
 
     document.getElementById('recuBody').innerHTML = `
       <div class="recu">
-        <div class="recu-head">
-          <div>
-            <h5 class="mb-0">${Utils.escapeHtml(param.etablissement)}</h5>
-            <small class="text-muted">${Utils.escapeHtml(param.adresse)}</small><br>
-            <small class="text-muted">Tél. ${Utils.escapeHtml(param.telephone)}</small>
-          </div>
-          <div class="text-end">
-            <div class="recu-num">${Utils.escapeHtml(p.transactionId)}</div>
-            <small class="text-muted">Année ${annee?.libelle||'—'}</small>
-          </div>
-        </div>
-        <h6 class="text-center my-3 fw-bold" style="letter-spacing:1px">REÇU DE PAIEMENT</h6>
+        ${Utils.enteteDocument('REÇU DE PAIEMENT')}
+
         <table class="table table-bordered table-sm">
           <tbody>
-            <tr><th style="width:40%">Élève</th><td><strong>${el?Utils.escapeHtml(el.prenom+' '+el.nom):'—'}</strong></td></tr>
+            <tr><th style="width:40%">N° Transaction</th><td><strong>${Utils.escapeHtml(p.transactionId)}</strong></td></tr>
+            <tr><th>Élève</th><td><strong>${el?Utils.escapeHtml(el.prenom+' '+el.nom):'—'}</strong></td></tr>
             <tr><th>Matricule</th><td>${el?Utils.escapeHtml(el.matricule):'—'}</td></tr>
             <tr><th>Classe</th><td>${cls?Utils.escapeHtml(cls.nom):'—'}</td></tr>
             <tr><th>Motif</th><td>${Utils.escapeHtml(p.libelle)}</td></tr>
+            <tr><th>Montant attendu</th><td>${Utils.formatFCFA(p.montantAttendu||0)}</td></tr>
             <tr><th>Montant payé</th><td class="fw-bold text-success fs-5">${Utils.formatFCFA(p.montantPaye)}</td></tr>
             <tr><th>Mode de paiement</th><td>${Utils.escapeHtml(p.mode)}</td></tr>
             <tr><th>Date</th><td>${Utils.formatDate(p.date)}</td></tr>
@@ -844,11 +836,13 @@ const Paiements = {
             <tr><th>Statut</th><td>${p.statut==='annulé'?'<span class="text-danger">ANNULÉ</span>':'<span class="text-success">Validé</span>'}</td></tr>
           </tbody>
         </table>
+
         <div class="recu-signatures">
           <div>Le Caissier<br><br><br>______________________</div>
-          <div>Cachet de l'établissement<br><br><br>______________________</div>
+          <div>Le Directeur<br><br><br>${Utils.escapeHtml(param.signDirecteur || param.directeur || '')}<br><small class="text-muted">Cachet de l'établissement</small></div>
         </div>
       </div>
+    `;
     `;
     new bootstrap.Modal(document.getElementById('modalRecu')).show();
   },
