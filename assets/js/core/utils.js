@@ -75,4 +75,46 @@ const Utils = {
   isSuperieur(){
     return this._typeEtablissement() === 'superieur';
   }
+    // ============================================================
+  // EN-TÊTE DE DOCUMENT (fiches, reçus, bulletins, rapports)
+  // Retourne un bloc HTML complet avec logo + infos établissement
+  // ============================================================
+  enteteDocument(sousTitre=''){
+    const p = (Storage.read()?.parametres) || {};
+    const annee = Storage.getAllIncludingArchived('annees').find(a => a.active);
+
+    // Lignes officielles (République, Ministère, Inspection)
+    const lignesOfficielles = [
+      p.docLigne1 || '',
+      p.docLigne2 || '',
+      p.docLigne3 || ''
+    ].filter(Boolean);
+
+    return `
+      <div class="entete-doc">
+        <div class="entete-doc-left">
+          ${p.logo
+            ? `<div class="entete-doc-logo"><img src="${Utils.escapeHtml(p.logo)}" alt="Logo"></div>`
+            : `<div class="entete-doc-logo entete-doc-logo-placeholder"><i class="bi bi-mortarboard-fill"></i></div>`
+          }
+          <div class="entete-doc-infos">
+            ${lignesOfficielles.length
+              ? lignesOfficielles.map(l => `<div class="entete-doc-ligne">${Utils.escapeHtml(l)}</div>`).join('')
+              : ''
+            }
+            <div class="entete-doc-nom">${Utils.escapeHtml(p.etablissement || '—')}</div>
+            ${p.adresse ? `<div class="entete-doc-detail"><i class="bi bi-geo-alt"></i> ${Utils.escapeHtml(p.adresse)}</div>` : ''}
+            ${p.telephone ? `<div class="entete-doc-detail"><i class="bi bi-telephone"></i> ${Utils.escapeHtml(p.telephone)}</div>` : ''}
+            ${p.email ? `<div class="entete-doc-detail"><i class="bi bi-envelope"></i> ${Utils.escapeHtml(p.email)}</div>` : ''}
+            ${p.slogan ? `<div class="entete-doc-slogan">« ${Utils.escapeHtml(p.slogan)} »</div>` : ''}
+          </div>
+        </div>
+        <div class="entete-doc-right">
+          ${annee ? `<div class="entete-doc-annee">Année ${Utils.escapeHtml(annee.libelle)}</div>` : ''}
+          ${sousTitre ? `<div class="entete-doc-soust">${Utils.escapeHtml(sousTitre)}</div>` : ''}
+          <div class="entete-doc-date">Édité le ${Utils.formatDate(new Date().toISOString())}</div>
+        </div>
+      </div>
+    `;
+  },
 };
