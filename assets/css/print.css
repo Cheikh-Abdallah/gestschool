@@ -1,183 +1,252 @@
 /* ============================================================
-   STYLES D'IMPRESSION — GLOBAL
+   STYLES D'IMPRESSION — GLOBAL v2
    Gère : bulletins, reçus, fiches élèves/étudiants, rapports
+   Objectif : contenu sur 1 seule page A4, sans pages vides
    ============================================================ */
 
 @media print{
-  /* Format et marges */
+
+  /* ═══ FORMAT DE PAGE ═══ */
   @page{
     size: A4 portrait;
-    margin: 10mm;
+    margin: 12mm 10mm;
   }
 
-  /* Masquer tout ce qui ne doit pas s'imprimer */
+  /* ═══ RESET GLOBAL ═══ */
+  html, body{
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    font-size: 11px !important;
+  }
+
+  *{
+    box-shadow: none !important;
+    text-shadow: none !important;
+    animation: none !important;
+    transition: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ═══ MASQUER TOUT LE CHROME DE L'APP ═══ */
   .sidebar,
-  .topbar,
   .sidebar-overlay,
+  .topbar,
+  .main-wrapper > header,
   .toast-container,
   .no-print,
-  .modal-header,
-  .modal-footer,
   .btn-close,
-  button:not(.print-keep),
   .pagination,
-  .search-inline,
   .nav-tabs,
   .nav-tabs-custom,
+  #rapportSelector,
+  #rapportFiltres,
   #rapportLMDSelector,
   #rapportLMDFiltres,
-  #rapportSelector,
-  #rapportFiltres {
+  #btnPrint,
+  #btnImprimer,
+  .btn-group,
+  .card-panel:not(.print-keep),
+  .stat-grid,
+  .page-title,
+  .page-sub {
     display: none !important;
   }
 
-  /* Reset général */
-  body{
-    background: #fff !important;
-    margin: 0 !important;
-    padding: 0 !important;
+  /* Ne pas masquer le contenu applicatif */
+  #appContent,
+  #appContent * {
+    visibility: visible !important;
   }
 
-  /* ═══ MODALES EN MODE IMPRESSION ═══ */
-  /* Neutraliser le fond gris de Bootstrap */
+  /* ═══ MODALES : NEUTRALISATION COMPLÈTE ═══ */
+  /* Bootstrap met .modal en position fixed → ceci casse l'impression */
   .modal,
-  .modal-backdrop,
+  .modal.show,
+  .modal.fade,
   .modal-dialog,
-  .modal-content{
+  .modal-content,
+  .modal-body{
     display: block !important;
     position: static !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    border: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    max-width: 100% !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
     width: 100% !important;
-  }
-
-  .modal-backdrop{ display: none !important; }
-
-  .modal-body{
-    padding: 0 !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
     margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
     overflow: visible !important;
+    transform: none !important;
+    box-shadow: none !important;
     max-height: none !important;
   }
 
+  .modal-backdrop,
+  .modal-dialog-scrollable .modal-body{
+    display: none !important;
+  }
+
+  /* Cas spécial : si la modale est .modal-dialog-scrollable */
+  .modal-dialog-scrollable .modal-content,
+  .modal-dialog-scrollable .modal-body{
+    display: block !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* ═══ MASQUER LES HEADER/FOOTER DE MODALE ═══ */
+  .modal-header,
+  .modal-footer{
+    display: none !important;
+  }
+
   /* ═══ DOCUMENTS IMPRIMABLES ═══ */
-  /* Fiches élèves / étudiants */
   .fiche-eleve,
-  .fiche-eleve *{
-    visibility: visible !important;
-    color: #000 !important;
-  }
-
-  .fiche-eleve{
-    background: #fff !important;
-    border: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    font-size: 11px;
-    page-break-inside: avoid;
-  }
-
-  /* Reçus de paiement */
   .recu,
-  .recu *{
-    visibility: visible !important;
-    color: #000 !important;
-  }
-
-  .recu{
-    background: #fff !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    font-size: 12px;
-    page-break-inside: avoid;
-  }
-
-  /* Bulletins et relevés */
   .bulletin-a4,
-  .bulletin-a4 *,
   .rap-doc,
-  .rap-doc *{
-    visibility: visible !important;
-    color: #000 !important;
-  }
-
-  .bulletin-a4,
-  .rap-doc{
+  .attestation{
+    display: block !important;
+    position: static !important;
     background: #fff !important;
+    color: #000 !important;
     border: none !important;
     box-shadow: none !important;
-    padding: 0 !important;
     margin: 0 !important;
+    padding: 0 !important;
     max-width: 100% !important;
-    page-break-after: always;
+    width: 100% !important;
+    page-break-inside: avoid;
+    page-break-after: auto;
+    overflow: visible !important;
   }
 
+  /* Quand on imprime un lot, séparer par pages */
+  .bulletin-a4 + .bulletin-a4,
+  .rap-doc + .rap-doc,
+  .page-break{
+    page-break-before: always;
+  }
+
+  /* Dernière page sans saut */
   .bulletin-a4:last-child,
   .rap-doc:last-child{
     page-break-after: auto;
   }
 
-  /* Sauts de page en mode lot */
-  .page-break{
-    page-break-before: always;
-  }
-
-  /* Tableaux : bordures lisibles */
+  /* ═══ TABLEAUX ═══ */
+  .fiche-eleve table,
+  .recu table,
   .bulletin-a4 table,
   .rap-doc table,
-  .fiche-eleve table,
-  .recu table{
+  .attestation table{
+    width: 100% !important;
+    border-collapse: collapse !important;
     page-break-inside: avoid;
+    font-size: 10.5px;
   }
 
+  .fiche-eleve th,
+  .fiche-eleve td,
+  .recu th,
+  .recu td,
   .bulletin-a4 th,
+  .bulletin-a4 td,
   .rap-doc th,
-  .fiche-eleve th{
-    background: #EFF6FF !important;
+  .rap-doc td{
+    border: 1px solid #333 !important;
+    padding: 4px 6px !important;
     color: #000 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
   }
 
-  /* Images / logos */
-  .bul-logo,
-  .fiche-photo,
-  .logo-preview{
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+  .fiche-eleve th,
+  .bulletin-a4 th,
+  .rap-doc th{
+    background: #EFF6FF !important;
+    font-weight: 600 !important;
   }
 
-  /* Signatures */
-  .bul-signatures,
+  /* ═══ EN-TÊTE DE DOCUMENT ═══ */
+  .entete-doc{
+    display: flex !important;
+    justify-content: space-between !important;
+    border-bottom: 2px solid #000 !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 10px !important;
+    page-break-after: avoid;
+  }
+
+  .entete-doc-nom,
+  .entete-doc-ligne,
+  .entete-doc-detail,
+  .entete-doc-slogan,
+  .entete-doc-annee,
+  .entete-doc-soust,
+  .entete-doc-date{
+    color: #000 !important;
+  }
+
+  .entete-doc-logo{
+    border: 1px solid #000 !important;
+    background: #fff !important;
+  }
+
+  /* Ancien en-tête (compatibilité) */
+  .fiche-head{
+    display: flex !important;
+    justify-content: space-between !important;
+    border-bottom: 2px solid #000 !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 10px !important;
+    page-break-after: avoid;
+  }
+
+  /* ═══ SIGNATURES ═══ */
   .fiche-signatures,
-  .rap-signature,
   .recu-signatures,
+  .bul-signatures,
+  .rap-signature,
   .attestation-signature{
     page-break-inside: avoid;
-    margin-top: 2rem !important;
+    margin-top: 24px !important;
   }
 
-  /* Pied de page */
-  .bul-footer,
-  .rap-footer{
-    font-size: 9px;
-    text-align: center;
-    border-top: 1px dashed #999;
-    padding-top: 4px;
-    margin-top: 1rem;
+  /* ═══ ÉVITER LES BLANCS AU DÉBUT ═══ */
+  /* Le premier élément imprimable doit coller en haut */
+  .modal-body > *:first-child,
+  .fiche-eleve > *:first-child,
+  .recu > *:first-child,
+  .bulletin-a4 > *:first-child,
+  .rap-doc > *:first-child{
+    margin-top: 0 !important;
+    padding-top: 0 !important;
   }
 
-  /* Neutraliser les animations */
-  *{
-    animation: none !important;
-    transition: none !important;
-    box-shadow: none !important;
+  /* ═══ SUPPRIMER LES POSITIONS FIXES RÉSIDUELLES ═══ */
+  .modal-dialog-centered{
+    display: block !important;
+    min-height: 0 !important;
+    align-items: initial !important;
+    justify-content: initial !important;
   }
 
-  /* Empêcher les débordements de couleur */
+  /* ═══ LIENS ═══ */
   a{ color: #000 !important; text-decoration: none !important; }
+
+  /* ═══ IMAGES ═══ */
+  img{
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
 }
