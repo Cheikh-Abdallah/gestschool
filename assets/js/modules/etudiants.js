@@ -550,14 +550,8 @@ const Etudiants = {
             </div>
             <div class="modal-body">
               <div class="fiche-eleve">
-                <div class="fiche-head">
-                  <div>
-                    <h5 class="mb-0">${Utils.escapeHtml(param.etablissement)}</h5>
-                    <small class="text-muted">${Utils.escapeHtml(param.adresse)}</small><br>
-                    <small class="text-muted">Année ${annee?.libelle||'—'}</small>
-                  </div>
-                </div>
-                <h6 class="text-center my-3 fw-bold" style="letter-spacing:1px">FICHE ÉTUDIANT</h6>
+                ${Utils.enteteDocument('FICHE ÉTUDIANT')}
+
                 <table class="table table-bordered table-sm fiche-table">
                   <tbody>
                     <tr><th style="width:35%">Matricule</th><td>${Utils.escapeHtml(e.matricule)}</td></tr>
@@ -566,20 +560,21 @@ const Etudiants = {
                     <tr><th>Sexe</th><td>${e.sexe==='M'?'Masculin':'Féminin'}</td></tr>
                     <tr><th>Date de naissance</th><td>${Utils.formatDate(e.dateNaissance)} à ${Utils.escapeHtml(e.lieuNaissance||'—')}</td></tr>
                     <tr><th>Nationalité</th><td>${Utils.escapeHtml(e.nationalite||'—')}</td></tr>
-                    <tr><th>Filière</th><td>${filiere?Utils.escapeHtml(filiere.code+' — '+filiere.nom):'—'}</td></tr>
-                    <tr><th>Niveau</th><td>${niveau?Utils.escapeHtml(niveau.libelle):'—'}</td></tr>
-                    <tr><th>Groupe</th><td>${groupe?Utils.escapeHtml(groupe.nom):'—'}</td></tr>
                     <tr><th>Email</th><td>${Utils.escapeHtml(e.email||'—')}</td></tr>
                     <tr><th>Téléphone</th><td>${Utils.escapeHtml(e.telephone||'—')}</td></tr>
                     <tr><th>Adresse</th><td>${Utils.escapeHtml(e.adresse||'—')}</td></tr>
+                    <tr><th>Filière</th><td>${filiere?Utils.escapeHtml(filiere.nom):'—'}</td></tr>
+                    <tr><th>Niveau</th><td>${niveau?Utils.escapeHtml(niveau.libelle):'—'}</td></tr>
+                    <tr><th>Groupe</th><td>${groupe?Utils.escapeHtml(groupe.nom):'—'}</td></tr>
                     <tr><th>Tuteur</th><td>${Utils.escapeHtml(e.nomTuteur||'—')}</td></tr>
                     <tr><th>Tél. tuteur</th><td>${Utils.escapeHtml(e.telephoneResponsable||'—')}</td></tr>
                     <tr><th>Infos médicales</th><td>${Utils.escapeHtml(e.infosMed||'—')}</td></tr>
                   </tbody>
                 </table>
+
                 <div class="fiche-signatures">
                   <div>L'Étudiant<br><br><br>______________________</div>
-                  <div>Le Directeur<br><br><br>${Utils.escapeHtml(param.directeur||'')}</div>
+                  <div>Le Directeur<br><br><br>${Utils.escapeHtml(param.signDirecteur || param.directeur || '')}</div>
                 </div>
               </div>
             </div>
