@@ -256,7 +256,13 @@ const Eleves = {
     });
 
     document.getElementById('formEleve').onsubmit = (e)=>{ e.preventDefault(); this.save(); };
-    document.getElementById('btnPrintFiche').onclick = ()=> window.print();
+    document.getElementById('btnPrintFiche').onclick = ()=>{
+  document.body.classList.add('printing-doc');
+  setTimeout(()=>{
+    window.print();
+    setTimeout(()=> document.body.classList.remove('printing-doc'), 500);
+  }, 50);
+};
   },
 
   populateFilters(){
