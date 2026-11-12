@@ -17,14 +17,7 @@ const DB = {
     // PARAMÈTRES ÉTABLISSEMENT
     // ============================================================
     const parametres = {
-         // ══════════════════════════════════════════════════════════
-  // TYPE D'ÉTABLISSEMENT (nouveau - Étape 1 V2)
-  // Valeurs : 'secondaire' | 'superieur'
-  // ══════════════════════════════════════════════════════════
-  typeEtablissement: 'secondaire',
-
-  etablissement: 'École Cheikh Anta Diop',
-  // ... le reste inchangé
+      typeEtablissement: 'secondaire',
       etablissement: 'École Cheikh Anta Diop',
       adresse: 'Avenue Bourguiba, Dakar, Sénégal',
       telephone: '+221 33 800 00 00',
@@ -33,18 +26,15 @@ const DB = {
       devise: 'FCFA',
       slogan: '',
       logo: null,
-      // Seuils (Module 13)
       seuilReussite: 10,
       seuilPassable: 10,
       seuilBien: 12,
       seuilTresBien: 14,
       seuilExcellent: 16,
-      // En-tête documents
       docLigne1: 'RÉPUBLIQUE DU SÉNÉGAL',
       docLigne2: "MINISTÈRE DE L'ÉDUCATION NATIONALE",
       docLigne3: "INSPECTION D'ACADÉMIE DE DAKAR",
       docMention: 'Un Peuple - Un But - Une Foi',
-      // Signatures
       signDirecteur: 'M. Ibrahima SARR',
       signCenseur: '',
       signSurveillant: '',
@@ -76,8 +66,8 @@ const DB = {
       nom:c.nom, niveau:c.niveau, cycle:c.cycle, serie:'',
       effectifMax:40,
       profPrincipalId:null,
-      enseignantIds:[],   // ← AJOUT Module 4
-      matiereIds:[],      // ← AJOUT Module 4
+      enseignantIds:[],
+      matiereIds:[],
       anneeId:annee.id
     }));
 
@@ -105,10 +95,10 @@ const DB = {
       adresse:'Quartier '+(i%10)+', Dakar',
       specialite: specialites[i%6],
       diplome: i%3===0 ? 'Master' : 'Licence',
-      statut: statuts[i%statuts.length],       // ← AJOUT Module 3
+      statut: statuts[i%statuts.length],
       dateRecrutement:'2020-09-01',
-      matieres:[],   // ← rempli après création des matières
-      classes:[],    // ← rempli après affectation classes
+      matieres:[],
+      classes:[],
       anneeId:annee.id
     }));
 
@@ -145,11 +135,10 @@ const DB = {
         nomTuteur:'',
         telephoneResponsable:'+221 77 '+(200+i)+' 00 '+(20+i),
         adresseResponsable:'Dakar',
-        infosMed: (i%20===0) ? 'Allergie aux arachides' : ''  // ← AJOUT Module 2
+        infosMed: (i%20===0) ? 'Allergie aux arachides' : ''
       });
     }
 
-    // Affecter prof principal à chaque classe
     classes.forEach((c,i)=>{
       c.profPrincipalId = enseignants[i%enseignants.length].id;
     });
@@ -177,22 +166,18 @@ const DB = {
       anneeId:annee.id
     }));
 
-    // ── Remplir enseignants.matieres[] et enseignants.classes[] ──
     matieres.forEach(mat=>{
       const ens = enseignants.find(e=>e.id === mat.enseignantId);
       if(ens){
         ens.matieres.push(mat.id);
-        // Toutes les classes de la matière
         mat.classeIds.forEach(cid=>{
           if(!ens.classes.includes(cid)) ens.classes.push(cid);
         });
       }
     });
 
-    // ── Remplir classes.matiereIds[] et classes.enseignantIds[] ──
     classes.forEach(c=>{
       c.matiereIds = matieres.filter(m=>m.classeIds.includes(c.id)).map(m=>m.id);
-      // Enseignants uniques qui enseignent dans cette classe
       const ensSet = new Set();
       c.matiereIds.forEach(mid=>{
         const mat = matieres.find(m=>m.id===mid);
@@ -202,7 +187,7 @@ const DB = {
     });
 
     // ============================================================
-    // FRAIS (inscription + 9 mensualités par classe)
+    // FRAIS
     // ============================================================
     const frais = [];
     classes.forEach((c,i)=>{
@@ -228,7 +213,7 @@ const DB = {
     });
 
     // ============================================================
-    // PAIEMENTS (~70% des élèves ont payé)
+    // PAIEMENTS (~70% des élèves)
     // ============================================================
     const modes = ['Espèces','Wave','Orange Money','Virement bancaire'];
     const paiements = [];
@@ -271,7 +256,7 @@ const DB = {
     });
 
     // ============================================================
-    // ABSENCES (60 enregistrements)
+    // ABSENCES (60)
     // ============================================================
     const absences = [];
     for(let i=0;i<60;i++){
@@ -290,7 +275,7 @@ const DB = {
     }
 
     // ============================================================
-    // ÉVALUATIONS + NOTES (Module 6)
+    // ÉVALUATIONS + NOTES (secondaire)
     // ============================================================
     const evaluations = [];
     const notes = [];
@@ -306,10 +291,9 @@ const DB = {
           periode:'Trimestre 1',
           type:'Composition',
           date:'2024-11-15',
-          bareme:20,           // ← AJOUT : barème sur 20
+          bareme:20,
           anneeId:annee.id
         });
-        // Notes pour les 20 premiers élèves de la classe
         eleves.filter(e=>e.classeId===cls.id).slice(0,20).forEach((el,idx)=>{
           notes.push({
             id:'nt_'+(++noteIdx),
@@ -360,13 +344,15 @@ const DB = {
       {id:'usr_surv', login:'surveillant',password:'surv123',nom:'Cheikh GUEYE',  role:'surveillant'}
     ];
 
-        // ══════════════════════════════════════════════════════════
-    // SEED SUPÉRIEUR (si typeEtablissement === 'superieur')
-    // ══════════════════════════════════════════════════════════
+    // ============================================================
+    // COLLECTIONS SUPÉRIEUR (déclarées ICI pour être accessibles
+    // dans le Storage.write final même si le if n'est pas exécuté)
+    // ============================================================
     let filieres = [], niveaux = [], groupes = [], ue = [], ecue = [];
+    let evalsLMD = [], notesLMD = [];
 
     if(parametres.typeEtablissement === 'superieur'){
-      // --- 3 filières ---
+      // --- 3 filières + BTS + DUT ---
       filieres = [
         {id:'fil_info', code:'INFO', nom:'Informatique', cycle:'Licence', dureeAnnees:3, description:'Génie logiciel, réseaux, développement web'},
         {id:'fil_gestion', code:'GEST', nom:'Gestion des Entreprises', cycle:'Licence', dureeAnnees:3, description:'Comptabilité, marketing, management'},
@@ -375,26 +361,19 @@ const DB = {
         {id:'fil_dut_gest', code:'DUT-GEST', nom:'DUT Gestion', cycle:'DUT', dureeAnnees:2, description:"Diplôme Universitaire de Technologie"}
       ];
 
-      // --- Niveaux (liés aux filières) ---
       niveaux = [
-        // Licence Informatique
         {id:'niv_info_l1', filiereId:'fil_info', code:'L1', libelle:'Licence 1 Informatique', ordre:1, creditsRequis:60, fraisScolarite:500000},
         {id:'niv_info_l2', filiereId:'fil_info', code:'L2', libelle:'Licence 2 Informatique', ordre:2, creditsRequis:60, fraisScolarite:550000},
         {id:'niv_info_l3', filiereId:'fil_info', code:'L3', libelle:'Licence 3 Informatique', ordre:3, creditsRequis:60, fraisScolarite:600000},
-        // Licence Gestion
         {id:'niv_gest_l1', filiereId:'fil_gestion', code:'L1', libelle:'Licence 1 Gestion', ordre:1, creditsRequis:60, fraisScolarite:480000},
         {id:'niv_gest_l2', filiereId:'fil_gestion', code:'L2', libelle:'Licence 2 Gestion', ordre:2, creditsRequis:60, fraisScolarite:520000},
         {id:'niv_gest_l3', filiereId:'fil_gestion', code:'L3', libelle:'Licence 3 Gestion', ordre:3, creditsRequis:60, fraisScolarite:580000},
-        // Licence Droit
         {id:'niv_droit_l1', filiereId:'fil_droit', code:'L1', libelle:'Licence 1 Droit', ordre:1, creditsRequis:60, fraisScolarite:450000},
-        // BTS Info
         {id:'niv_bts1', filiereId:'fil_bts_info', code:'BTS1', libelle:'BTS 1 Informatique', ordre:1, creditsRequis:60, fraisScolarite:600000},
         {id:'niv_bts2', filiereId:'fil_bts_info', code:'BTS2', libelle:'BTS 2 Informatique', ordre:2, creditsRequis:60, fraisScolarite:650000},
-        // DUT Gestion
         {id:'niv_dut1', filiereId:'fil_dut_gest', code:'DUT1', libelle:'DUT 1 Gestion', ordre:1, creditsRequis:60, fraisScolarite:550000}
       ];
 
-      // --- Groupes (remplace classes en mode supérieur) ---
       groupes = [
         {id:'grp_info_l1_a', niveauId:'niv_info_l1', nom:'L1 Info - Groupe A', effectifMax:40, profPrincipalId:null, enseignantIds:[], ueIds:[], anneeId:annee.id},
         {id:'grp_info_l1_b', niveauId:'niv_info_l1', nom:'L1 Info - Groupe B', effectifMax:40, profPrincipalId:null, enseignantIds:[], ueIds:[], anneeId:annee.id},
@@ -404,14 +383,57 @@ const DB = {
         {id:'grp_bts1_a', niveauId:'niv_bts1', nom:'BTS 1 Info - Groupe A', effectifMax:30, profPrincipalId:null, enseignantIds:[], ueIds:[], anneeId:annee.id}
       ];
 
-            // --- Générer des étudiants dans les groupes supérieurs ---
+      ue = [
+        {id:'ue_info_l1_s1_01', code:'UE-INFO-L1-S1-01', nom:'Programmation 1', semestre:'S1', filiereId:'fil_info', niveauId:'niv_info_l1', creditsECTS:6, coefficient:3, typeUE:'Fondamentale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
+        {id:'ue_info_l1_s1_02', code:'UE-INFO-L1-S1-02', nom:'Mathématiques discrètes', semestre:'S1', filiereId:'fil_info', niveauId:'niv_info_l1', creditsECTS:6, coefficient:3, typeUE:'Fondamentale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
+        {id:'ue_info_l1_s1_03', code:'UE-INFO-L1-S1-03', nom:'Architecture des ordinateurs', semestre:'S1', filiereId:'fil_info', niveauId:'niv_info_l1', creditsECTS:6, coefficient:3, typeUE:'Fondamentale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
+        {id:'ue_info_l1_s1_04', code:'UE-INFO-L1-S1-04', nom:'Anglais technique', semestre:'S1', filiereId:'fil_info', niveauId:'niv_info_l1', creditsECTS:3, coefficient:1, typeUE:'Transversale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
+        {id:'ue_info_l1_s1_05', code:'UE-INFO-L1-S1-05', nom:'Méthodologie universitaire', semestre:'S1', filiereId:'fil_info', niveauId:'niv_info_l1', creditsECTS:3, coefficient:1, typeUE:'Transversale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
+        {id:'ue_info_l1_s2_01', code:'UE-INFO-L1-S2-01', nom:'Programmation 2', semestre:'S2', filiereId:'fil_info', niveauId:'niv_info_l1', creditsECTS:6, coefficient:3, typeUE:'Fondamentale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
+        {id:'ue_info_l1_s2_02', code:'UE-INFO-L1-S2-02', nom:'Bases de données', semestre:'S2', filiereId:'fil_info', niveauId:'niv_info_l1', creditsECTS:6, coefficient:3, typeUE:'Fondamentale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
+        {id:'ue_info_l2_s1_01', code:'UE-INFO-L2-S1-01', nom:'Algorithmique avancée', semestre:'S1', filiereId:'fil_info', niveauId:'niv_info_l2', creditsECTS:6, coefficient:3, typeUE:'Fondamentale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
+        {id:'ue_info_l2_s1_02', code:'UE-INFO-L2-S1-02', nom:'Réseaux', semestre:'S1', filiereId:'fil_info', niveauId:'niv_info_l2', creditsECTS:6, coefficient:3, typeUE:'Professionnelle', ecueIds:[], enseignantIds:[], anneeId:annee.id},
+        {id:'ue_gest_l1_s1_01', code:'UE-GEST-L1-S1-01', nom:'Comptabilité générale', semestre:'S1', filiereId:'fil_gestion', niveauId:'niv_gest_l1', creditsECTS:6, coefficient:3, typeUE:'Fondamentale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
+        {id:'ue_gest_l1_s1_02', code:'UE-GEST-L1-S1-02', nom:'Économie générale', semestre:'S1', filiereId:'fil_gestion', niveauId:'niv_gest_l1', creditsECTS:6, coefficient:3, typeUE:'Fondamentale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
+        {id:'ue_droit_l1_s1_01', code:'UE-DROIT-L1-S1-01', nom:'Introduction au droit', semestre:'S1', filiereId:'fil_droit', niveauId:'niv_droit_l1', creditsECTS:6, coefficient:3, typeUE:'Fondamentale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
+        {id:'ue_bts1_s1_01', code:'UE-BTS1-S1-01', nom:'Développement web', semestre:'S1', filiereId:'fil_bts_info', niveauId:'niv_bts1', creditsECTS:6, coefficient:3, typeUE:'Professionnelle', ecueIds:[], enseignantIds:[], anneeId:annee.id}
+      ];
+
+      ecue = [
+        {id:'ecue_info_l1_s1_01_cm', ueId:'ue_info_l1_s1_01', nom:'CM Programmation 1', coefficient:1, volumeCM:20, volumeTD:0, volumeTP:0, enseignantId:null, anneeId:annee.id},
+        {id:'ecue_info_l1_s1_01_td', ueId:'ue_info_l1_s1_01', nom:'TD Programmation 1', coefficient:1, volumeCM:0, volumeTD:15, volumeTP:0, enseignantId:null, anneeId:annee.id},
+        {id:'ecue_info_l1_s1_01_tp', ueId:'ue_info_l1_s1_01', nom:'TP Programmation 1', coefficient:1, volumeCM:0, volumeTD:0, volumeTP:15, enseignantId:null, anneeId:annee.id},
+        {id:'ecue_info_l1_s1_02_cm', ueId:'ue_info_l1_s1_02', nom:'CM Maths discrètes', coefficient:1, volumeCM:25, volumeTD:0, volumeTP:0, enseignantId:null, anneeId:annee.id},
+        {id:'ecue_info_l1_s1_02_td', ueId:'ue_info_l1_s1_02', nom:'TD Maths discrètes', coefficient:1, volumeCM:0, volumeTD:20, volumeTP:0, enseignantId:null, anneeId:annee.id},
+        {id:'ecue_info_l1_s1_03_cm', ueId:'ue_info_l1_s1_03', nom:'CM Architecture', coefficient:1, volumeCM:20, volumeTD:0, volumeTP:0, enseignantId:null, anneeId:annee.id},
+        {id:'ecue_info_l1_s1_03_tp', ueId:'ue_info_l1_s1_03', nom:'TP Architecture', coefficient:1, volumeCM:0, volumeTD:0, volumeTP:20, enseignantId:null, anneeId:annee.id},
+        {id:'ecue_info_l1_s1_04_td', ueId:'ue_info_l1_s1_04', nom:'TD Anglais technique', coefficient:1, volumeCM:0, volumeTD:20, volumeTP:0, enseignantId:null, anneeId:annee.id},
+        {id:'ecue_info_l1_s1_05_cm', ueId:'ue_info_l1_s1_05', nom:'CM Méthodologie', coefficient:1, volumeCM:15, volumeTD:0, volumeTP:0, enseignantId:null, anneeId:annee.id},
+        {id:'ecue_gest_l1_s1_01_cm', ueId:'ue_gest_l1_s1_01', nom:'CM Comptabilité', coefficient:1, volumeCM:25, volumeTD:0, volumeTP:0, enseignantId:null, anneeId:annee.id},
+        {id:'ecue_gest_l1_s1_01_td', ueId:'ue_gest_l1_s1_01', nom:'TD Comptabilité', coefficient:1, volumeCM:0, volumeTD:20, volumeTP:0, enseignantId:null, anneeId:annee.id}
+      ];
+
+      ue.forEach(u => {
+        u.ecueIds = ecue.filter(e => e.ueId === u.id).map(e => e.id);
+      });
+
+      ue.forEach((u, i) => {
+        const ens = enseignants[i % enseignants.length];
+        if(ens) u.enseignantIds = [ens.id];
+      });
+
+      groupes.forEach((g, i) => {
+        g.profPrincipalId = enseignants[i % enseignants.length].id;
+      });
+
+      // --- Étudiants dans les groupes ---
       const prenomsM2 = ['Mamadou','Ousmane','Ibrahima','Cheikh','Alioune','Pape','Moussa','Abdoulaye','Malick','Babacar'];
       const prenomsF2 = ['Fatou','Aminata','Awa','Mariama','Khady','Ndeye','Sokhna','Coumba','Astou','Rokhaya'];
       const nomsEt = ['DIALLO','SARR','THIAM','CISSE','FAYE','NIANG','SY','BODIAN','CAMARA','MBAYE','DIENG','SECK'];
 
       let etuMatricule = 5000;
       groupes.forEach((grp, gi)=>{
-        const nbEtudiants = 8 + (gi % 5) * 3;  // entre 8 et 20 étudiants par groupe
+        const nbEtudiants = 8 + (gi % 5) * 3;
         for(let i=0; i<nbEtudiants; i++){
           const sexe = (gi + i) % 2 === 0 ? 'M' : 'F';
           const prenom = sexe === 'M' ? prenomsM2[(gi*7+i) % prenomsM2.length] : prenomsF2[(gi*7+i) % prenomsF2.length];
@@ -440,82 +462,16 @@ const DB = {
         }
       });
 
-      // --- UE (Unités d'Enseignement) — système LMD ---
-      ue = [
-        // L1 Informatique - Semestre 1
-        {id:'ue_info_l1_s1_01', code:'UE-INFO-L1-S1-01', nom:'Programmation 1', semestre:'S1', filiereId:'fil_info', niveauId:'niv_info_l1', creditsECTS:6, coefficient:3, typeUE:'Fondamentale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
-        {id:'ue_info_l1_s1_02', code:'UE-INFO-L1-S1-02', nom:'Mathématiques discrètes', semestre:'S1', filiereId:'fil_info', niveauId:'niv_info_l1', creditsECTS:6, coefficient:3, typeUE:'Fondamentale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
-        {id:'ue_info_l1_s1_03', code:'UE-INFO-L1-S1-03', nom:'Architecture des ordinateurs', semestre:'S1', filiereId:'fil_info', niveauId:'niv_info_l1', creditsECTS:6, coefficient:3, typeUE:'Fondamentale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
-        {id:'ue_info_l1_s1_04', code:'UE-INFO-L1-S1-04', nom:'Anglais technique', semestre:'S1', filiereId:'fil_info', niveauId:'niv_info_l1', creditsECTS:3, coefficient:1, typeUE:'Transversale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
-        {id:'ue_info_l1_s1_05', code:'UE-INFO-L1-S1-05', nom:'Méthodologie universitaire', semestre:'S1', filiereId:'fil_info', niveauId:'niv_info_l1', creditsECTS:3, coefficient:1, typeUE:'Transversale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
-        // L1 Informatique - Semestre 2
-        {id:'ue_info_l1_s2_01', code:'UE-INFO-L1-S2-01', nom:'Programmation 2', semestre:'S2', filiereId:'fil_info', niveauId:'niv_info_l1', creditsECTS:6, coefficient:3, typeUE:'Fondamentale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
-        {id:'ue_info_l1_s2_02', code:'UE-INFO-L1-S2-02', nom:'Bases de données', semestre:'S2', filiereId:'fil_info', niveauId:'niv_info_l1', creditsECTS:6, coefficient:3, typeUE:'Fondamentale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
-        // L2 Informatique
-        {id:'ue_info_l2_s1_01', code:'UE-INFO-L2-S1-01', nom:'Algorithmique avancée', semestre:'S1', filiereId:'fil_info', niveauId:'niv_info_l2', creditsECTS:6, coefficient:3, typeUE:'Fondamentale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
-        {id:'ue_info_l2_s1_02', code:'UE-INFO-L2-S1-02', nom:'Réseaux', semestre:'S1', filiereId:'fil_info', niveauId:'niv_info_l2', creditsECTS:6, coefficient:3, typeUE:'Professionnelle', ecueIds:[], enseignantIds:[], anneeId:annee.id},
-        // L1 Gestion
-        {id:'ue_gest_l1_s1_01', code:'UE-GEST-L1-S1-01', nom:'Comptabilité générale', semestre:'S1', filiereId:'fil_gestion', niveauId:'niv_gest_l1', creditsECTS:6, coefficient:3, typeUE:'Fondamentale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
-        {id:'ue_gest_l1_s1_02', code:'UE-GEST-L1-S1-02', nom:'Économie générale', semestre:'S1', filiereId:'fil_gestion', niveauId:'niv_gest_l1', creditsECTS:6, coefficient:3, typeUE:'Fondamentale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
-        // L1 Droit
-        {id:'ue_droit_l1_s1_01', code:'UE-DROIT-L1-S1-01', nom:'Introduction au droit', semestre:'S1', filiereId:'fil_droit', niveauId:'niv_droit_l1', creditsECTS:6, coefficient:3, typeUE:'Fondamentale', ecueIds:[], enseignantIds:[], anneeId:annee.id},
-        // BTS 1
-        {id:'ue_bts1_s1_01', code:'UE-BTS1-S1-01', nom:'Développement web', semestre:'S1', filiereId:'fil_bts_info', niveauId:'niv_bts1', creditsECTS:6, coefficient:3, typeUE:'Professionnelle', ecueIds:[], enseignantIds:[], anneeId:annee.id}
-      ];
-
-      // --- ECUE (Éléments Constitutifs) ---
-      ecue = [
-        // UE Programmation 1 → CM + TD + TP
-        {id:'ecue_info_l1_s1_01_cm', ueId:'ue_info_l1_s1_01', nom:'CM Programmation 1', coefficient:1, volumeCM:20, volumeTD:0, volumeTP:0, enseignantId:null, anneeId:annee.id},
-        {id:'ecue_info_l1_s1_01_td', ueId:'ue_info_l1_s1_01', nom:'TD Programmation 1', coefficient:1, volumeCM:0, volumeTD:15, volumeTP:0, enseignantId:null, anneeId:annee.id},
-        {id:'ecue_info_l1_s1_01_tp', ueId:'ue_info_l1_s1_01', nom:'TP Programmation 1', coefficient:1, volumeCM:0, volumeTD:0, volumeTP:15, enseignantId:null, anneeId:annee.id},
-        // UE Mathématiques discrètes
-        {id:'ecue_info_l1_s1_02_cm', ueId:'ue_info_l1_s1_02', nom:'CM Maths discrètes', coefficient:1, volumeCM:25, volumeTD:0, volumeTP:0, enseignantId:null, anneeId:annee.id},
-        {id:'ecue_info_l1_s1_02_td', ueId:'ue_info_l1_s1_02', nom:'TD Maths discrètes', coefficient:1, volumeCM:0, volumeTD:20, volumeTP:0, enseignantId:null, anneeId:annee.id},
-        // UE Architecture
-        {id:'ecue_info_l1_s1_03_cm', ueId:'ue_info_l1_s1_03', nom:'CM Architecture', coefficient:1, volumeCM:20, volumeTD:0, volumeTP:0, enseignantId:null, anneeId:annee.id},
-        {id:'ecue_info_l1_s1_03_tp', ueId:'ue_info_l1_s1_03', nom:'TP Architecture', coefficient:1, volumeCM:0, volumeTD:0, volumeTP:20, enseignantId:null, anneeId:annee.id},
-        // UE Anglais
-        {id:'ecue_info_l1_s1_04_td', ueId:'ue_info_l1_s1_04', nom:'TD Anglais technique', coefficient:1, volumeCM:0, volumeTD:20, volumeTP:0, enseignantId:null, anneeId:annee.id},
-        // UE Méthodologie
-        {id:'ecue_info_l1_s1_05_cm', ueId:'ue_info_l1_s1_05', nom:'CM Méthodologie', coefficient:1, volumeCM:15, volumeTD:0, volumeTP:0, enseignantId:null, anneeId:annee.id},
-        // UE Comptabilité
-        {id:'ecue_gest_l1_s1_01_cm', ueId:'ue_gest_l1_s1_01', nom:'CM Comptabilité', coefficient:1, volumeCM:25, volumeTD:0, volumeTP:0, enseignantId:null, anneeId:annee.id},
-        {id:'ecue_gest_l1_s1_01_td', ueId:'ue_gest_l1_s1_01', nom:'TD Comptabilité', coefficient:1, volumeCM:0, volumeTD:20, volumeTP:0, enseignantId:null, anneeId:annee.id}
-      ];
-
-      // --- Remplir ue.ecueIds[] ---
-      ue.forEach(u => {
-        u.ecueIds = ecue.filter(e => e.ueId === u.id).map(e => e.id);
-      });
-
-      // --- Affecter quelques enseignants aux UE (rotation) ---
-      ue.forEach((u, i) => {
-        const ens = enseignants[i % enseignants.length];
-        if(ens) u.enseignantIds = [ens.id];
-      });
-
-      // --- Affecter prof principal aux groupes ---
-      groupes.forEach((g, i) => {
-        g.profPrincipalId = enseignants[i % enseignants.length].id;
-      });
-            // ============================================================
-      // ÉVALUATIONS & NOTES LMD (mode supérieur)
-      // ============================================================
-      const evalsLMD = [];
-      const notesLMD = [];
+      // --- Évaluations + Notes LMD ---
       let evLMDIdx = 0, noteLMDIdx = 0;
 
-      // Pour chaque ECUE, créer 2 évaluations (CC et Examen)
       ecue.forEach(ec=>{
         const ueObj = ue.find(u=>u.id === ec.ueId);
         if(!ueObj) return;
-
-        // Trouver les groupes du niveau
         const groupesNiveau = groupes.filter(g=>g.niveauId === ueObj.niveauId);
 
         groupesNiveau.forEach(grp=>{
-          // CC (Contrôle Continu)
+          // CC
           evLMDIdx++;
           evalsLMD.push({
             id:'evLMD_' + evLMDIdx,
@@ -523,14 +479,14 @@ const DB = {
             ecueId: ec.id,
             groupeId: grp.id,
             semestre: ueObj.semestre,
-            session: 'S1',   // session normale
+            session: 'S1',
             type: 'CC',
             date: '2024-11-20',
             bareme: 20,
             anneeId: annee.id
           });
 
-          // Examen (session 1)
+          // Examen
           evLMDIdx++;
           evalsLMD.push({
             id:'evLMD_' + evLMDIdx,
@@ -545,10 +501,8 @@ const DB = {
             anneeId: annee.id
           });
 
-          // Noter les étudiants du groupe
           const etudiantsGrp = eleves.filter(e=>e.classeId === grp.id && e.typeEtudiant === 'superieur');
           etudiantsGrp.forEach((etu, idx)=>{
-            // CC (poids 40%)
             const ccVal = 8 + ((idx * 3 + ec.volumeTD + ec.volumeTP) % 12);
             notesLMD.push({
               id:'ntLMD_' + (++noteLMDIdx),
@@ -558,7 +512,6 @@ const DB = {
               statut: 'noté',
               anneeId: annee.id
             });
-            // Examen (poids 60%)
             const examVal = 8 + ((idx * 5 + ec.volumeCM) % 12);
             notesLMD.push({
               id:'ntLMD_' + (++noteLMDIdx),
@@ -575,6 +528,7 @@ const DB = {
 
     // ============================================================
     // ÉCRITURE FINALE
+    // ============================================================
     Storage.write({
       parametres,
       annees:[annee],
@@ -590,13 +544,12 @@ const DB = {
       notes,
       emploiTemps,
       logs:[],
-      // Collections supérieur (peuplées si mode supérieur, sinon vides)
       filieres,
       niveaux,
       groupes,
       ue,
       ecue,
-            evaluationsLMD: evalsLMD,
+      evaluationsLMD: evalsLMD,
       notesLMD: notesLMD
     });
   }
