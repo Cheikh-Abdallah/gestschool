@@ -10,6 +10,7 @@ const Utils = {
   formatDate(iso){
     if(!iso) return '—';
     const d = new Date(iso);
+    if(isNaN(d.getTime())) return '—';
     return d.toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit', year:'numeric'});
   },
 
@@ -21,100 +22,105 @@ const Utils = {
   escapeHtml(s){
     return String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   },
-    // ============================================================
+
+  // ============================================================
   // LIBELLÉS DYNAMIQUES (Mode dual : secondaire / supérieur)
   // ============================================================
   _typeEtablissement(){
     const db = Storage.read() || {};
-    return db.parametres?.typeEtablissement || 'secondaire';
+    return (db.parametres && db.parametres.typeEtablissement) || 'secondaire';
   },
 
-  /**
-   * Retourne le libellé adapté au type d'établissement.
-   * Exemples :
-   *   Utils.label('eleve')      → 'Élève'     ou 'Étudiant'
-   *   Utils.label('eleves')     → 'Élèves'    ou 'Étudiants'
-   *   Utils.label('classe')     → 'Classe'    ou 'Groupe'
-   *   Utils.label('matiere')    → 'Matière'   ou 'UE'
-   *   Utils.label('bulletin')   → 'Bulletin'  ou 'Relevé de notes'
-   */
   label(key){
     const sup = this._typeEtablissement() === 'superieur';
     const dict = {
-      // Élèves / Étudiants
       eleve:        sup ? 'Étudiant'   : 'Élève',
       eleves:       sup ? 'Étudiants'  : 'Élèves',
       Eleve:        sup ? 'Étudiant'   : 'Élève',
       Eleves:       sup ? 'Étudiants'  : 'Élèves',
-      // Classes / Groupes
       classe:       sup ? 'Groupe'     : 'Classe',
       classes:      sup ? 'Groupes'    : 'Classes',
       Classe:       sup ? 'Groupe'     : 'Classe',
       Classes:      sup ? 'Groupes'    : 'Classes',
-      // Matières / UE
       matiere:      sup ? 'UE'         : 'Matière',
       matieres:     sup ? 'UE'         : 'Matières',
       Matiere:      sup ? 'UE'         : 'Matière',
       Matieres:     sup ? 'UE'         : 'Matières',
-      // Bulletins / Relevés
       bulletin:     sup ? 'Relevé de notes' : 'Bulletin',
       bulletins:    sup ? 'Relevés de notes' : 'Bulletins',
       Bulletin:     sup ? 'Relevé de notes' : 'Bulletin',
       Bulletins:    sup ? 'Relevés de notes' : 'Bulletins',
-      // Prof principal → Responsable pédagogique
       profPrincipal: sup ? 'Responsable pédagogique' : 'Professeur principal',
-      // Divers
-      niveau:       sup ? 'Niveau'      : 'Niveau',
-      filiere:      sup ? 'Filière'     : 'Filière',
-      // Scolarité
-      scolarite:    sup ? 'Scolarité'   : 'Scolarité'
+      niveau:       'Niveau',
+      filiere:      'Filière',
+      scolarite:    'Scolarité'
     };
     return dict[key] || key;
   },
 
   isSuperieur(){
     return this._typeEtablissement() === 'superieur';
-  }
-    // ============================================================
-  // EN-TÊTE DE DOCUMENT (fiches, reçus, bulletins, rapports)
-  // Retourne un bloc HTML complet avec logo + infos établissement
+  },
+
   // ============================================================
-  enteteDocument(sousTitre=''){
-    const p = (Storage.read()?.parametres) || {};
-    const annee = Storage.getAllIncludingArchived('annees').find(a => a.active);
+  // EN-TÊTE DE DOCUMENT (fiches, reçus, bulletins, rapports)
+  // ============================================================
+  enteteDocument(sousTitre){
+    sousTitre = sousTitre || '';
+    const p = (Storage.read() && Storage.read().parametres) || {};
+    const annees = Storage.getAllIncludingArchived('annees') || [];
+    const annee = annees.find(function(a){ return a.active; }) || annees[0] || null;
 
     // Lignes officielles (République, Ministère, Inspection)
-    const lignesOfficielles = [
-      p.docLigne1 || '',
-      p.docLigne2 || '',
-      p.docLigne3 || ''
-    ].filter(Boolean);
+    const lignesOfficielles = [];
+    if(p.docLigne1) lignesOfficielles.push(p.docLigne1);
+    if(p.docLigne2) lignesOfficielles.push(p.docLigne2);
+    if(p.docLigne3) lignesOfficielles.push(p.docLigne3);
 
-    return `
-      <div class="entete-doc">
-        <div class="entete-doc-left">
-          ${p.logo
-            ? `<div class="entete-doc-logo"><img src="${Utils.escapeHtml(p.logo)}" alt="Logo"></div>`
-            : `<div class="entete-doc-logo entete-doc-logo-placeholder"><i class="bi bi-mortarboard-fill"></i></div>`
-          }
-          <div class="entete-doc-infos">
-            ${lignesOfficielles.length
-              ? lignesOfficielles.map(l => `<div class="entete-doc-ligne">${Utils.escapeHtml(l)}</div>`).join('')
-              : ''
-            }
-            <div class="entete-doc-nom">${Utils.escapeHtml(p.etablissement || '—')}</div>
-            ${p.adresse ? `<div class="entete-doc-detail"><i class="bi bi-geo-alt"></i> ${Utils.escapeHtml(p.adresse)}</div>` : ''}
-            ${p.telephone ? `<div class="entete-doc-detail"><i class="bi bi-telephone"></i> ${Utils.escapeHtml(p.telephone)}</div>` : ''}
-            ${p.email ? `<div class="entete-doc-detail"><i class="bi bi-envelope"></i> ${Utils.escapeHtml(p.email)}</div>` : ''}
-            ${p.slogan ? `<div class="entete-doc-slogan">« ${Utils.escapeHtml(p.slogan)} »</div>` : ''}
-          </div>
-        </div>
-        <div class="entete-doc-right">
-          ${annee ? `<div class="entete-doc-annee">Année ${Utils.escapeHtml(annee.libelle)}</div>` : ''}
-          ${sousTitre ? `<div class="entete-doc-soust">${Utils.escapeHtml(sousTitre)}</div>` : ''}
-          <div class="entete-doc-date">Édité le ${Utils.formatDate(new Date().toISOString())}</div>
-        </div>
-      </div>
-    `;
-  },
+    // Bloc logo (image ou placeholder)
+    let logoHtml;
+    if(p.logo){
+      logoHtml = '<div class="entete-doc-logo"><img src="' + this.escapeHtml(p.logo) + '" alt="Logo"></div>';
+    } else {
+      logoHtml = '<div class="entete-doc-logo entete-doc-logo-placeholder"><i class="bi bi-mortarboard-fill"></i></div>';
+    }
+
+    // Lignes officielles HTML
+    let lignesHtml = '';
+    if(lignesOfficielles.length){
+      lignesHtml = lignesOfficielles.map(function(l){
+        return '<div class="entete-doc-ligne">' + Utils.escapeHtml(l) + '</div>';
+      }).join('');
+    }
+
+    // Détails de contact
+    let adresseHtml = p.adresse ? '<div class="entete-doc-detail"><i class="bi bi-geo-alt"></i> ' + this.escapeHtml(p.adresse) + '</div>' : '';
+    let telHtml = p.telephone ? '<div class="entete-doc-detail"><i class="bi bi-telephone"></i> ' + this.escapeHtml(p.telephone) + '</div>' : '';
+    let emailHtml = p.email ? '<div class="entete-doc-detail"><i class="bi bi-envelope"></i> ' + this.escapeHtml(p.email) + '</div>' : '';
+    let sloganHtml = p.slogan ? '<div class="entete-doc-slogan">« ' + this.escapeHtml(p.slogan) + ' »</div>' : '';
+
+    // Colonne droite
+    let anneeHtml = annee ? '<div class="entete-doc-annee">Année ' + this.escapeHtml(annee.libelle) + '</div>' : '';
+    let sousTitreHtml = sousTitre ? '<div class="entete-doc-soust">' + this.escapeHtml(sousTitre) + '</div>' : '';
+    let dateHtml = '<div class="entete-doc-date">Édité le ' + this.formatDate(new Date().toISOString()) + '</div>';
+
+    return '<div class="entete-doc">' +
+      '<div class="entete-doc-left">' +
+        logoHtml +
+        '<div class="entete-doc-infos">' +
+          lignesHtml +
+          '<div class="entete-doc-nom">' + this.escapeHtml(p.etablissement || '—') + '</div>' +
+          adresseHtml +
+          telHtml +
+          emailHtml +
+          sloganHtml +
+        '</div>' +
+      '</div>' +
+      '<div class="entete-doc-right">' +
+        anneeHtml +
+        sousTitreHtml +
+        dateHtml +
+      '</div>' +
+    '</div>';
+  }
 };
