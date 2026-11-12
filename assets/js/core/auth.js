@@ -1,8 +1,10 @@
 /**
  * Authentification + Permissions par rôle + Logs.
+ * V3 : session en localStorage (fiable en PWA / standalone).
  */
 const Auth = {
   SESSION_KEY: 'gestschool_session',
+  SESSION_TTL: 8 * 60 * 60 * 1000, // 8 heures
 
   // ============================================================
   // RÔLES ET PERMISSIONS
@@ -12,14 +14,14 @@ const Auth = {
       label: 'Administrateur',
       color: 'danger',
       icon: 'bi-shield-fill-check',
-       modules: ['dashboard','eleves','enseignants','classes','matieres','notes','absences','paiements','bulletins','emploi','annees','rapports','utilisateurs','parametres','filieres','niveaux','ue','ecue','notesLMD', 'bulletinsLMD'],
+      modules: ['dashboard','eleves','enseignants','classes','matieres','notes','absences','paiements','bulletins','emploi','annees','rapports','utilisateurs','parametres','filieres','niveaux','ue','ecue','notesLMD','bulletinsLMD'],
       description: 'Accès total à toutes les fonctionnalités.'
     },
     directeur: {
       label: 'Directeur',
       color: 'primary',
       icon: 'bi-person-badge',
-      modules: ['dashboard','eleves','enseignants','classes','matieres','notes','absences','paiements','bulletins','emploi','annees','rapports','parametres','filieres','niveaux','ue','ecue','notesLMD', 'bulletinsLMD'],
+      modules: ['dashboard','eleves','enseignants','classes','matieres','notes','absences','paiements','bulletins','emploi','annees','rapports','parametres','filieres','niveaux','ue','ecue','notesLMD','bulletinsLMD'],
       description: 'Consultation et validation. Pas de gestion des utilisateurs.'
     },
     secretaire: {
@@ -40,7 +42,7 @@ const Auth = {
       label: 'Enseignant',
       color: 'warning',
       icon: 'bi-mortarboard',
-      modules: ['dashboard','notes','absences','emploi','bulletins','ue','ecue','notesLMD', 'bulletinsLMD'],
+      modules: ['dashboard','notes','absences','emploi','bulletins','ue','ecue','notesLMD','bulletinsLMD'],
       description: 'Notes et absences de ses classes.'
     },
     surveillant: {
@@ -53,7 +55,7 @@ const Auth = {
   },
 
   // ============================================================
-  // SESSION
+  // SESSION (localStorage + expiration 8h)
   // ============================================================
   login(login, password){
     const users = Storage.getAllIncludingArchived('utilisateurs');
@@ -64,22 +66,33 @@ const Auth = {
       nom: user.nom,
       login: user.login,
       role: user.role,
-      loginAt: new Date().toISOString()
+      loginAt: new Date().toISOString(),
+      expiresAt: Date.now() + this.SESSION_TTL
     };
-    sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
+    localStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
     this.log('login', 'Connexion de ' + user.nom);
     return session;
   },
 
   current(){
-    try{ return JSON.parse(sessionStorage.getItem(this.SESSION_KEY)); }
-    catch(e){ return null; }
+    try{
+      const raw = localStorage.getItem(this.SESSION_KEY);
+      if(!raw) return null;
+      const s = JSON.parse(raw);
+      if(s.expiresAt && Date.now() > s.expiresAt){
+        localStorage.removeItem(this.SESSION_KEY);
+        return null;
+      }
+      return s;
+    }catch(e){
+      return null;
+    }
   },
 
   logout(){
     const u = this.current();
     if(u) this.log('logout', 'Déconnexion de ' + u.nom);
-    sessionStorage.removeItem(this.SESSION_KEY);
+    localStorage.removeItem(this.SESSION_KEY);
     location.href = 'index.html';
   },
 
@@ -127,7 +140,6 @@ const Auth = {
       details,
       date: new Date().toISOString()
     });
-    // Garder seulement les 500 derniers logs
     if(db.logs.length > 500) db.logs = db.logs.slice(-500);
     Storage.write(db);
   },
