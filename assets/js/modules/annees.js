@@ -55,19 +55,36 @@ const Annees = {
                 <div class="row g-3">
                   <div class="col-12">
                     <label class="form-label">Libellé *</label>
-                    <input class="form-control" id="anLibelle" required placeholder="2025-2026">
+                    <input class="form-control" id="anLibelle" required placeholder="2026-2027">
                     <div class="invalid-feedback">Libellé obligatoire.</div>
                   </div>
                   <div class="col-12">
                     <label class="form-label">Type de périodes *</label>
                     <select class="form-select" id="anType" required>
-                      <option value="trimestre">Trimestres (3)</option>
-                      <option value="semestre">Semestres (2)</option>
+                      <option value="trimestre">Trimestres</option>
+                      <option value="semestre">Semestres</option>
                     </select>
                     <div class="invalid-feedback">Type obligatoire.</div>
                   </div>
                   <div class="col-12">
-                    <div class="form-check">
+                    <label class="form-label">Gestion des périodes</label>
+                    <select class="form-select" id="anGestion">
+                      <option value="auto">Automatique (génère les périodes)</option>
+                      <option value="manuelle">Manuelle (je définis les dates et noms)</option>
+                    </select>
+                  </div>
+
+                  <!-- Bloc de gestion manuelle (caché si auto) -->
+                  <div class="col-12 d-none" id="blocPeriodesManuelles">
+                    <label class="form-label fw-semibold">Périodes personnalisées</label>
+                    <div id="listePeriodes"></div>
+                    <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="btnAddPeriode">
+                      <i class="bi bi-plus"></i> Ajouter une période
+                    </button>
+                  </div>
+
+                  <div class="col-12">
+                    <div class="form-check mt-2">
                       <input class="form-check-input" type="checkbox" id="anActive">
                       <label class="form-check-label small" for="anActive">
                         Définir comme année <strong>active</strong> (les autres seront automatiquement désactivées)
@@ -127,7 +144,6 @@ const Annees = {
       return;
     }
 
-    // Trier par libellé descendante
     annees.sort((a,b)=>b.libelle.localeCompare(a.libelle));
 
     tbody.innerHTML = annees.map(a=>{
@@ -138,10 +154,22 @@ const Annees = {
         : a.archived
           ? '<span class="badge bg-secondary-subtle text-secondary">Archivée</span>'
           : '<span class="badge bg-warning-subtle text-warning">Inactive</span>';
-      const periodes = a.periodes?.length ? a.periodes : (a.typePeriode==='semestre'?['Semestre 1','Semestre 2']:['Trimestre 1','Trimestre 2','Trimestre 3']);
+
+      // Gestion des périodes
+      let periodes = [];
+      if (a.gestionManuelle) {
+        periodes = a.periodes || [];
+      } else {
+        periodes = a.typePeriode === 'semestre' ? ['Semestre 1', 'Semestre 2'] : ['Trimestre 1', 'Trimestre 2', 'Trimestre 3'];
+      }
+
+      const periodesHtml = periodes.length
+        ? periodes.map(p => typeof p === 'string' ? p : p.nom).map(nom => `<span class="badge-matricule me-1">${Utils.escapeHtml(nom)}</span>`).join('')
+        : '—';
+
       return `<tr class="${a.active?'row-active':''}">
         <td><strong>${Utils.escapeHtml(a.libelle)}</strong></td>
-        <td>${periodes.map(p=>`<span class="badge-matricule me-1">${Utils.escapeHtml(p)}</span>`).join('')}</td>
+        <td>${periodesHtml}</td>
         <td>${eleves.length}</td>
         <td>${classes.length}</td>
         <td>${statusBadge}</td>
@@ -167,9 +195,30 @@ const Annees = {
   },
 
   openForm(id=null){
-    const modal = new bootstrap.Modal(document.getElementById('modalAnnee'));
+    const modalEl = document.getElementById('modalAnnee');
+    const modal = new bootstrap.Modal(modalEl);
     const form = document.getElementById('formAnnee');
     form.classList.remove('was-validated');
+    document.getElementById('listePeriodes').innerHTML = '';
+    document.getElementById('blocPeriodesManuelles').classList.add('d-none');
+
+    document.getElementById('anGestion').onchange = (e)=>{
+      document.getElementById('blocPeriodesManuelles').classList.toggle('d-none', e.target.value !== 'manuelle');
+    };
+
+    document.getElementById('btnAddPeriode').onclick = ()=>{
+      const html = `
+        <div class="d-flex gap-2 mb-2 align-items-center" data-periode>
+          <input type="text" class="form-control form-control-sm" placeholder="Ex: Semestre 1" data-nom required>
+          <input type="date" class="form-control form-control-sm" data-debut>
+          <input type="date" class="form-control form-control-sm" data-fin>
+          <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.parentElement.remove()">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      `;
+      document.getElementById('listePeriodes').insertAdjacentHTML('beforeend', html);
+    };
 
     if(id){
       const a = Storage.getAllIncludingArchived('annees').find(x=>x.id===id);
@@ -179,11 +228,27 @@ const Annees = {
       document.getElementById('anLibelle').value = a.libelle;
       document.getElementById('anType').value = a.typePeriode || 'trimestre';
       document.getElementById('anActive').checked = !!a.active;
+      
+      const gestion = a.gestionManuelle ? 'manuelle' : 'auto';
+      document.getElementById('anGestion').value = gestion;
+      document.getElementById('anGestion').dispatchEvent(new Event('change'));
+
+      if(gestion === 'manuelle' && a.periodes){
+        a.periodes.forEach(p => {
+          document.getElementById('btnAddPeriode').click(); // Crée une ligne vide
+          const rows = document.querySelectorAll('#listePeriodes [data-periode]');
+          const lastRow = rows[rows.length - 1];
+          lastRow.querySelector('[data-nom]').value = p.nom || '';
+          lastRow.querySelector('[data-debut]').value = p.debut || '';
+          lastRow.querySelector('[data-fin]').value = p.fin || '';
+        });
+      }
+
     } else {
       form.reset();
       document.getElementById('modalAnneeTitle').textContent = 'Nouvelle année scolaire';
       document.getElementById('anId').value = '';
-      // Proposer 2025-2026 automatiquement
+      
       const annees = Storage.getAllIncludingArchived('annees');
       const last = annees.sort((x,y)=>y.libelle.localeCompare(x.libelle))[0];
       if(last){
@@ -191,8 +256,6 @@ const Annees = {
         if(!isNaN(start)){
           document.getElementById('anLibelle').value = (start+1)+'-'+(start+2);
         }
-      } else {
-        document.getElementById('anLibelle').value = '2025-2026';
       }
       document.getElementById('anActive').checked = false;
     }
@@ -207,12 +270,27 @@ const Annees = {
     const id = document.getElementById('anId').value;
     const libelle = document.getElementById('anLibelle').value.trim();
     const typePeriode = document.getElementById('anType').value;
+    const gestion = document.getElementById('anGestion').value;
     const actif = document.getElementById('anActive').checked;
 
-    // Périodes auto
-    const periodes = typePeriode === 'semestre'
-      ? ['Semestre 1', 'Semestre 2']
-      : ['Trimestre 1', 'Trimestre 2', 'Trimestre 3'];
+    // Récupération des périodes manuelles
+    let periodes = [];
+    if(gestion === 'manuelle'){
+      const rows = document.querySelectorAll('#listePeriodes [data-periode]');
+      rows.forEach(row=>{
+        const nom = row.querySelector('[data-nom]').value.trim();
+        const debut = row.querySelector('[data-debut]').value;
+        const fin = row.querySelector('[data-fin]').value;
+        if(nom) periodes.push({ nom, debut, fin });
+      });
+    }
+
+    // Si c'est auto, on génère les périodes en mémoire pour l'affichage (mais on ne sauvegarde que les noms)
+    if(gestion === 'auto'){
+      periodes = typePeriode === 'semestre' 
+        ? ['Semestre 1', 'Semestre 2'] 
+        : ['Trimestre 1', 'Trimestre 2', 'Trimestre 3'];
+    }
 
     // Vérifier doublon
     const dup = Storage.getAllIncludingArchived('annees').find(a=>a.libelle.toLowerCase()===libelle.toLowerCase() && a.id !== id);
@@ -227,23 +305,29 @@ const Annees = {
       });
     }
 
+    const data = {
+      libelle,
+      typePeriode,
+      gestionManuelle: gestion === 'manuelle',
+      periodes,
+      active: actif
+    };
+
     if(id){
-      Storage.update('annees', id, {libelle, typePeriode, periodes, active: actif});
+      Storage.update('annees', id, data);
       Notify.toast('Année modifiée.', 'success');
     } else {
-      Storage.create('annees', {libelle, typePeriode, periodes, active: actif, archived:false});
+      Storage.create('annees', {...data, archived:false});
       Notify.toast('Année créée.', 'success');
     }
     bootstrap.Modal.getInstance(document.getElementById('modalAnnee')).hide();
     this.refresh();
-    // Rafraîchir le badge de l'année dans le header
     this.updateHeaderBadge();
   },
 
   activer(id){
     const a = Storage.getAllIncludingArchived('annees').find(x=>x.id===id);
     if(!a) return;
-    // Désactiver toutes
     Storage.getAllIncludingArchived('annees').forEach(x=>{
       Storage.update('annees', x.id, {active: x.id === id});
     });
@@ -294,7 +378,6 @@ const Annees = {
       return;
     }
 
-    // Élèves de l'année active
     const eleves = Storage.getAll('eleves').filter(e=>e.anneeId === anneeActive.id);
 
     if(!eleves.length){
@@ -304,12 +387,9 @@ const Annees = {
       return;
     }
 
-    // Classes de l'année active
     const classesSrc = Storage.getAll('classes').filter(c=>c.anneeId===anneeActive.id);
-    // Classes de l'année destination
     const classeDst = document.getElementById('reinscriptionDst')?.value;
 
-    // Mapping niveau → niveau supérieur
     const nextNiveau = {
       'PS':'MS', 'MS':'GS', 'GS':'CI',
       'CI':'CP', 'CP':'CE1', 'CE1':'CE2', 'CE2':'CM1', 'CM1':'CM2', 'CM2':'6ᵉ',
@@ -329,8 +409,6 @@ const Annees = {
       </div>
       <p class="small text-muted">
         Pour chaque élève, choisissez la classe de destination en ${Utils.escapeHtml(destinations[0].libelle)}.
-        La moyenne suggérée utilise les résultats du dernier trimestre/semestre.
-        <strong>Terminale</strong> : l'élève peut être marqué "Diplômé" (non réinscrit).
       </p>
       <div class="table-responsive">
         <table class="table table-sm align-middle">
@@ -338,14 +416,12 @@ const Annees = {
             <tr>
               <th>Élève</th>
               <th>Classe actuelle</th>
-              <th>Moyenne suggérée</th>
               <th>Nouvelle classe</th>
             </tr>
           </thead>
           <tbody>
     `;
 
-    // Préparer les classes destination par niveau
     const classesDstAll = Storage.getAll('classes').filter(c=>c.anneeId === destinations[0].id);
 
     eleves.forEach(el=>{
@@ -353,33 +429,13 @@ const Annees = {
       const niveauActuel = clsActuelle?.niveau || '';
       const niveauSuivant = nextNiveau[niveauActuel] || niveauActuel;
 
-      // Calculer la moyenne suggérée
-      let moySugg = null;
-      const anneePeriode = anneeActive.periodes?.slice(-1)[0] || 'Trimestre 1';
-      try {
-        const res = Bulletins.calculerResultats(el.classeId, anneePeriode);
-        const rEl = res?.eleves.find(r=>r.eleve.id === el.id);
-        if(rEl && rEl.moyenne != null) moySugg = rEl.moyenne;
-      } catch(e){ /* ignore */ }
-
-      const decision = moySugg != null && moySugg >= 10 ? 'Admis' : moySugg != null ? 'Redouble' : '—';
-
-      // Classes destination possibles (même niveau que niveauSuivant, ou même niveau si redouble)
       const classesPossibles = classesDstAll.filter(c=>
         c.niveau === niveauSuivant || c.niveau === niveauActuel
       );
 
-      const actionRow = niveauActuel === 'Terminale' ? `
-        <tr>
-          <td colspan="4" class="text-muted small fst-italic">
-            ${Utils.escapeHtml(el.prenom+' '+el.nom)} — Terminale : l'élève peut être marqué "Diplômé" ou réinscrit.
-          </td>
-        </tr>` : '';
-
       html += `<tr data-eleve="${el.id}">
         <td><strong>${Utils.escapeHtml(el.prenom+' '+el.nom)}</strong><br><small class="text-muted">${Utils.escapeHtml(el.matricule)}</small></td>
         <td>${Utils.escapeHtml(clsActuelle?.nom||'—')}</td>
-        <td>${moySugg!=null ? moySugg.toFixed(2)+'/20<br><small class="text-muted">'+decision+'</small>' : '<span class="text-muted">—</span>'}</td>
         <td>
           <select class="form-select form-select-sm dest-classe" data-eleve="${el.id}">
             <option value="">— Ignorer (non réinscrit) —</option>
@@ -417,13 +473,11 @@ const Annees = {
       const el = Storage.getById('eleves', elvId);
       if(!el) return;
 
-      // Vérifier s'il est déjà réinscrit dans cette année
       const existing = Storage.getAll('eleves').find(e=>
         e.matricule === el.matricule && e.anneeId === destAnneeId
       );
-      if(existing) return; // déjà réinscrit
+      if(existing) return; 
 
-      // Créer nouvelle inscription
       const newEl = {...el, id: undefined, anneeId: destAnneeId, classeId: newClasseId, dateInscription: new Date().toISOString().slice(0,10)};
       delete newEl.id; delete newEl.createdAt; delete newEl.updatedAt;
       Storage.create('eleves', newEl);
