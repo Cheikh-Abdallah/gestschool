@@ -206,6 +206,26 @@ const Etudiants = {
           </div>
         </div>
       </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- MODALE FICHE ÉTUDIANT (statique, une seule fois)       -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="modal fade" id="modalFicheEtu" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header no-print">
+              <h6 class="modal-title"><i class="bi bi-person-vcard me-1"></i> Fiche étudiant</h6>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-secondary" id="btnPrintFicheEtu">
+                  <i class="bi bi-printer"></i> Imprimer
+                </button>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+            </div>
+            <div class="modal-body" id="ficheEtuBody"></div>
+          </div>
+        </div>
+      </div>
     `;
 
     this.bindEvents();
@@ -275,6 +295,15 @@ const Etudiants = {
         ? '<option value="">— Choisir —</option>' + groupes.map(g=>`<option value="${g.id}">${Utils.escapeHtml(g.nom)}</option>`).join('')
         : '<option value="">— Aucun groupe —</option>';
     };
+
+    // ═══ GESTION IMPRESSION FICHE ═══
+    document.getElementById('btnPrintFicheEtu').onclick = ()=>{
+      document.body.classList.add('printing-doc');
+      setTimeout(()=>{
+        window.print();
+        setTimeout(()=> document.body.classList.remove('printing-doc'), 500);
+      }, 50);
+    };
   },
 
   populateFilters(){
@@ -312,7 +341,6 @@ const Etudiants = {
 
     if(s.filtreGroupe) list = list.filter(e=>e.classeId === s.filtreGroupe);
     if(s.filtreNiveau){
-      // Trouver les groupes de ce niveau
       const groupeIds = Storage.getAll('groupes').filter(g=>g.niveauId === s.filtreNiveau).map(g=>g.id);
       list = list.filter(e=>groupeIds.includes(e.classeId));
     }
@@ -441,7 +469,6 @@ const Etudiants = {
       document.getElementById('etuAdresse').value = e.adresse || '';
       document.getElementById('etuInfosMed').value = e.infosMed || '';
 
-      // Cascade filière → niveau → groupe
       const groupe = Storage.getById('groupes', e.classeId);
       const niveau = groupe ? Storage.getById('niveaux', groupe.niveauId) : null;
       const filiere = niveau ? Storage.getById('filieres', niveau.filiereId) : null;
@@ -458,8 +485,6 @@ const Etudiants = {
       document.getElementById('modalEtuTitle').textContent = 'Nouvel étudiant';
       document.getElementById('etuId').value = '';
       document.getElementById('etuNationalite').value = 'Sénégalaise';
-
-      // Matricule auto
       const all = Storage.getAllIncludingArchived('eleves');
       const maxNum = all.reduce((m,e)=>{
         const n = parseInt((e.matricule||'').replace(/\D/g,'')) || 0;
@@ -467,7 +492,6 @@ const Etudiants = {
       }, 1000);
       document.getElementById('etuMatricule').value = 'ETU-' + (maxNum+1);
       document.getElementById('etuDateInscription').value = new Date().toISOString().slice(0,10);
-
       document.getElementById('etuNiveau').innerHTML = '<option value="">— Choisir la filière d\'abord —</option>';
       document.getElementById('etuGroupe').innerHTML = '<option value="">— Choisir le niveau d\'abord —</option>';
     }
@@ -493,7 +517,7 @@ const Etudiants = {
       email: document.getElementById('etuEmail').value.trim(),
       telephone: document.getElementById('etuTelephone').value.trim(),
       dateInscription: document.getElementById('etuDateInscription').value,
-      classeId: document.getElementById('etuGroupe').value,  // classeId = groupeId en mode sup
+      classeId: document.getElementById('etuGroupe').value,
       nomTuteur: document.getElementById('etuTuteur').value.trim(),
       telephoneResponsable: document.getElementById('etuTelTuteur').value.trim(),
       adresse: document.getElementById('etuAdresse').value.trim(),
@@ -529,64 +553,44 @@ const Etudiants = {
   showFiche(id){
     const e = Storage.getById('eleves', id);
     if(!e) return;
+
     const groupe = Storage.getById('groupes', e.classeId);
     const niveau = groupe ? Storage.getById('niveaux', groupe.niveauId) : null;
     const filiere = niveau ? Storage.getById('filieres', niveau.filiereId) : null;
-    const param = Storage.read().parametres;
-    const annee = Storage.getAllIncludingArchived('annees').find(a=>a.active);
+    const param = Storage.read().parametres || {};
 
-    const html = `
-      <div class="modal fade" id="modalFicheEtu" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-          <div class="modal-content">
-            <div class="modal-header no-print">
-              <h6 class="modal-title">Fiche étudiant</h6>
-              <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">
-                  <i class="bi bi-printer"></i> Imprimer
-                </button>
-                <button class="btn-close" data-bs-dismiss="modal"></button>
-              </div>
-            </div>
-            <div class="modal-body">
-              <div class="fiche-eleve">
-                ${Utils.enteteDocument('FICHE ÉTUDIANT')}
+    document.getElementById('ficheEtuBody').innerHTML = `
+      <div class="fiche-eleve">
+        ${Utils.enteteDocument('FICHE ÉTUDIANT')}
 
-                <table class="table table-bordered table-sm fiche-table">
-                  <tbody>
-                    <tr><th style="width:35%">Matricule</th><td>${Utils.escapeHtml(e.matricule)}</td></tr>
-                    <tr><th>INE</th><td>${Utils.escapeHtml(e.ine||'—')}</td></tr>
-                    <tr><th>Nom & Prénom</th><td><strong>${Utils.escapeHtml(e.prenom+' '+e.nom)}</strong></td></tr>
-                    <tr><th>Sexe</th><td>${e.sexe==='M'?'Masculin':'Féminin'}</td></tr>
-                    <tr><th>Date de naissance</th><td>${Utils.formatDate(e.dateNaissance)} à ${Utils.escapeHtml(e.lieuNaissance||'—')}</td></tr>
-                    <tr><th>Nationalité</th><td>${Utils.escapeHtml(e.nationalite||'—')}</td></tr>
-                    <tr><th>Email</th><td>${Utils.escapeHtml(e.email||'—')}</td></tr>
-                    <tr><th>Téléphone</th><td>${Utils.escapeHtml(e.telephone||'—')}</td></tr>
-                    <tr><th>Adresse</th><td>${Utils.escapeHtml(e.adresse||'—')}</td></tr>
-                    <tr><th>Filière</th><td>${filiere?Utils.escapeHtml(filiere.nom):'—'}</td></tr>
-                    <tr><th>Niveau</th><td>${niveau?Utils.escapeHtml(niveau.libelle):'—'}</td></tr>
-                    <tr><th>Groupe</th><td>${groupe?Utils.escapeHtml(groupe.nom):'—'}</td></tr>
-                    <tr><th>Tuteur</th><td>${Utils.escapeHtml(e.nomTuteur||'—')}</td></tr>
-                    <tr><th>Tél. tuteur</th><td>${Utils.escapeHtml(e.telephoneResponsable||'—')}</td></tr>
-                    <tr><th>Infos médicales</th><td>${Utils.escapeHtml(e.infosMed||'—')}</td></tr>
-                  </tbody>
-                </table>
+        <table class="table table-bordered table-sm fiche-table mt-3">
+          <tbody>
+            <tr><th style="width:35%">Matricule</th><td>${Utils.escapeHtml(e.matricule)}</td></tr>
+            <tr><th>INE</th><td>${Utils.escapeHtml(e.ine||'—')}</td></tr>
+            <tr><th>Nom & Prénom</th><td><strong>${Utils.escapeHtml(e.prenom+' '+e.nom)}</strong></td></tr>
+            <tr><th>Sexe</th><td>${e.sexe==='M'?'Masculin':'Féminin'}</td></tr>
+            <tr><th>Date de naissance</th><td>${Utils.formatDate(e.dateNaissance)} à ${Utils.escapeHtml(e.lieuNaissance||'—')}</td></tr>
+            <tr><th>Nationalité</th><td>${Utils.escapeHtml(e.nationalite||'—')}</td></tr>
+            <tr><th>Email</th><td>${Utils.escapeHtml(e.email||'—')}</td></tr>
+            <tr><th>Téléphone</th><td>${Utils.escapeHtml(e.telephone||'—')}</td></tr>
+            <tr><th>Adresse</th><td>${Utils.escapeHtml(e.adresse||'—')}</td></tr>
+            <tr><th>Filière</th><td>${filiere?Utils.escapeHtml(filiere.nom):'—'}</td></tr>
+            <tr><th>Niveau</th><td>${niveau?Utils.escapeHtml(niveau.libelle):'—'}</td></tr>
+            <tr><th>Groupe</th><td>${groupe?Utils.escapeHtml(groupe.nom):'—'}</td></tr>
+            <tr><th>Tuteur</th><td>${Utils.escapeHtml(e.nomTuteur||'—')}</td></tr>
+            <tr><th>Tél. tuteur</th><td>${Utils.escapeHtml(e.telephoneResponsable||'—')}</td></tr>
+            <tr><th>Infos médicales</th><td>${Utils.escapeHtml(e.infosMed||'—')}</td></tr>
+          </tbody>
+        </table>
 
-                <div class="fiche-signatures">
-                  <div>L'Étudiant<br><br><br>______________________</div>
-                  <div>Le Directeur<br><br><br>${Utils.escapeHtml(param.signDirecteur || param.directeur || '')}</div>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div class="fiche-signatures">
+          <div>L'Étudiant<br><br><br>______________________</div>
+          <div>Le Directeur<br><br><br>${Utils.escapeHtml(param.signDirecteur || param.directeur || '')}</div>
         </div>
       </div>
     `;
-    // Insérer et afficher
-    document.body.insertAdjacentHTML('beforeend', html);
-    const modalEl = document.getElementById('modalFicheEtu');
-    modalEl.addEventListener('hidden.bs.modal', ()=> modalEl.remove());
-    new bootstrap.Modal(modalEl).show();
+
+    new bootstrap.Modal(document.getElementById('modalFicheEtu')).show();
   },
 
   exportCsv(){
