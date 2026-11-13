@@ -30,20 +30,89 @@
 /* Modale paiement */
 .modal-pay .modal-body{max-height: calc(100vh - 200px);overflow-y:auto;}
 
-/* Reçu */
-.recu{font-size:.9rem;}
-.recu-head{
-  display:flex;justify-content:space-between;align-items:flex-start;
-  border-bottom:2px solid var(--royal);padding-bottom:.75rem;
-}
-.recu-num{
-  display:inline-block;background:#EFF6FF;color:var(--royal);
-  font-weight:700;padding:.35rem .7rem;border-radius:8px;font-size:.85rem;
-}
-.recu-signatures{
-  display:flex;justify-content:space-between;margin-top:1.5rem;
-  font-size:.82rem;text-align:center;
-}
+  /* ═══ REÇU : impression A4 propre ═══ */
+  .recu{
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 10.5px !important;
+    color: #000 !important;
+  }
+
+  .recu-bandeau{
+    padding: 8px 12px !important;
+    border-radius: 6px !important;
+    margin-bottom: 10px !important;
+    color: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .recu-bandeau-num{
+    font-size: 12px !important;
+  }
+
+  .recu-bandeau-statut{
+    font-size: 13px !important;
+  }
+
+  .recu-montant{
+    background: #F0FDF4 !important;
+    border: 2px solid #16A34A !important;
+    padding: 10px !important;
+    margin: 10px 0 !important;
+    border-radius: 8px !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    page-break-inside: avoid;
+  }
+
+  .recu-montant-valeur{
+    font-size: 20px !important;
+    color: #000 !important;
+  }
+
+  .recu-montant-label{
+    font-size: 9px !important;
+    color: #16A34A !important;
+  }
+
+  .recu-table{
+    font-size: 10px !important;
+  }
+
+  .recu-table th,
+  .recu-table td{
+    padding: 3px 6px !important;
+    border: 1px solid #333 !important;
+    color: #000 !important;
+  }
+
+  .recu-table th{
+    background: #F3F4F6 !important;
+  }
+
+  .recu-alerte-annule{
+    background: #FEF2F2 !important;
+    border-left: 3px solid #DC2626 !important;
+    padding: 6px 10px !important;
+    font-size: 10px !important;
+    margin: 8px 0 !important;
+  }
+
+  .recu-signatures{
+    margin-top: 25px !important;
+  }
+
+  .recu-sign-line{
+    margin-top: 30px !important;
+  }
+
+  .recu-mention{
+    font-size: 8px !important;
+    margin-top: 15px !important;
+    padding-top: 5px !important;
+  }
 
 @media (max-width:768px){
   .modal-pay .modal-body{max-height: calc(100vh - 170px);}
