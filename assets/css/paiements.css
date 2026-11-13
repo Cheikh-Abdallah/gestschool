@@ -1,4 +1,8 @@
-/* Spécifique module paiements */
+/* ============================================================
+   Spécifique module paiements
+   ============================================================ */
+
+/* Recherche */
 .search-inline{
   display:flex;align-items:center;gap:.5rem;
   background:var(--bg);border:1px solid var(--border);border-radius:9px;
@@ -7,6 +11,7 @@
 .search-inline i{color:var(--muted);font-size:.9rem;}
 .search-inline input{border:none;background:transparent;outline:none;flex:1;font-size:.85rem;}
 
+/* Tableau */
 #tblPay thead th{
   font-size:.75rem;text-transform:uppercase;color:var(--muted);
   font-weight:600;letter-spacing:.3px;white-space:nowrap;
@@ -16,7 +21,7 @@
 
 .row-annule{opacity:.6;}
 
-/* Onglets custom */
+/* Onglets */
 .nav-tabs-custom{border-bottom:2px solid var(--border);}
 .nav-tabs-custom .nav-link{
   border:none;color:var(--muted);font-weight:500;font-size:.88rem;
@@ -30,93 +35,166 @@
 /* Modale paiement */
 .modal-pay .modal-body{max-height: calc(100vh - 200px);overflow-y:auto;}
 
-  /* ═══ REÇU : impression A4 propre ═══ */
-  .recu{
-    max-width: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    font-size: 10.5px !important;
-    color: #000 !important;
-  }
+/* ============================================================
+   REÇU — STYLES ÉCRAN
+   ============================================================ */
+.recu{
+  font-size: .85rem;
+  color: #1F2937;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: .5rem;
+}
 
-  .recu-bandeau{
-    padding: 8px 12px !important;
-    border-radius: 6px !important;
-    margin-bottom: 10px !important;
-    color: #fff !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
+/* Bandeau numéro de transaction */
+.recu-bandeau{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .75rem 1rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  color: #fff;
+}
+.recu-bandeau.recu-valide{
+  background: linear-gradient(135deg, #16A34A 0%, #22C55E 100%);
+}
+.recu-bandeau.recu-annule{
+  background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+}
+.recu-bandeau-label{
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  opacity: .9;
+}
+.recu-bandeau-num{
+  font-size: 1rem;
+  font-weight: 700;
+  margin-top: .15rem;
+  font-family: 'Courier New', monospace;
+}
+.recu-bandeau-statut{
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin-top: .15rem;
+}
 
-  .recu-bandeau-num{
-    font-size: 12px !important;
-  }
+/* Sections */
+.recu-section{
+  margin-bottom: 1rem;
+}
+.recu-section-title{
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--royal);
+  margin-bottom: .5rem;
+  padding-bottom: .25rem;
+  border-bottom: 1px solid var(--border);
+}
 
-  .recu-bandeau-statut{
-    font-size: 13px !important;
-  }
+/* Tableau d'infos */
+.recu-table{
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .85rem;
+}
+.recu-table th{
+  text-align: left;
+  padding: .4rem .6rem;
+  background: #F9FAFB;
+  color: var(--muted);
+  font-weight: 500;
+  width: 35%;
+  border: 1px solid var(--border);
+}
+.recu-table td{
+  padding: .4rem .6rem;
+  border: 1px solid var(--border);
+  font-weight: 500;
+}
 
-  .recu-montant{
-    background: #F0FDF4 !important;
-    border: 2px solid #16A34A !important;
-    padding: 10px !important;
-    margin: 10px 0 !important;
-    border-radius: 8px !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-    page-break-inside: avoid;
-  }
+/* Montant payé en évidence */
+.recu-montant{
+  background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
+  border: 2px solid #16A34A;
+  border-radius: 12px;
+  padding: 1.25rem;
+  text-align: center;
+  margin: 1.25rem 0;
+}
+.recu-montant.recu-montant-annule{
+  background: #F9FAFB;
+  border-color: #9CA3AF;
+}
+.recu-montant-label{
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+  color: #16A34A;
+  margin-bottom: .25rem;
+}
+.recu-montant-annule .recu-montant-label{ color: #6B7280; }
+.recu-montant-valeur{
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #16A34A;
+}
+.recu-montant-annule .recu-montant-valeur{ color: #9CA3AF; }
 
-  .recu-montant-valeur{
-    font-size: 20px !important;
-    color: #000 !important;
-  }
+/* Alerte annulation */
+.recu-alerte-annule{
+  background: #FEF2F2;
+  border-left: 4px solid #DC2626;
+  border-radius: 6px;
+  padding: .75rem 1rem;
+  font-size: .82rem;
+  color: #991B1B;
+  margin: 1rem 0;
+}
 
-  .recu-montant-label{
-    font-size: 9px !important;
-    color: #16A34A !important;
-  }
+/* Signatures */
+.recu-signatures{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 2rem;
+  font-size: .78rem;
+  text-align: center;
+}
+.recu-sign-label{
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: .25rem;
+}
+.recu-sign-name{
+  font-size: .75rem;
+  color: #6B7280;
+  min-height: 14px;
+}
+.recu-sign-line{
+  border-top: 1px solid #374151;
+  margin-top: 35px;
+}
 
-  .recu-table{
-    font-size: 10px !important;
-  }
+/* Mention légale */
+.recu-mention{
+  text-align: center;
+  font-size: .72rem;
+  color: var(--muted);
+  font-style: italic;
+  margin-top: 1.5rem;
+  padding-top: .75rem;
+  border-top: 1px dashed var(--border);
+}
 
-  .recu-table th,
-  .recu-table td{
-    padding: 3px 6px !important;
-    border: 1px solid #333 !important;
-    color: #000 !important;
-  }
-
-  .recu-table th{
-    background: #F3F4F6 !important;
-  }
-
-  .recu-alerte-annule{
-    background: #FEF2F2 !important;
-    border-left: 3px solid #DC2626 !important;
-    padding: 6px 10px !important;
-    font-size: 10px !important;
-    margin: 8px 0 !important;
-  }
-
-  .recu-signatures{
-    margin-top: 25px !important;
-  }
-
-  .recu-sign-line{
-    margin-top: 30px !important;
-  }
-
-  .recu-mention{
-    font-size: 8px !important;
-    margin-top: 15px !important;
-    padding-top: 5px !important;
-  }
-
+/* Responsive */
 @media (max-width:768px){
   .modal-pay .modal-body{max-height: calc(100vh - 170px);}
-  .recu-head{flex-direction:column;gap:.5rem;}
+  .recu-signatures{grid-template-columns: 1fr; gap: 1.5rem;}
 }
 
 @media (max-width:576px){
