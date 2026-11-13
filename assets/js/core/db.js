@@ -10,7 +10,8 @@ const DB = {
       libelle:'2024-2025',
       active:true,
       typePeriode:'trimestre',
-      periodes:['Trimestre 1','Trimestre 2','Trimestre 3']
+      periodes:['Trimestre 1','Trimestre 2','Trimestre 3'],
+      gestionManuelle: false
     };
 
     // ============================================================
@@ -352,7 +353,6 @@ const DB = {
     let evalsLMD = [], notesLMD = [];
 
     if(parametres.typeEtablissement === 'superieur'){
-      // --- 3 filières + BTS + DUT ---
       filieres = [
         {id:'fil_info', code:'INFO', nom:'Informatique', cycle:'Licence', dureeAnnees:3, description:'Génie logiciel, réseaux, développement web'},
         {id:'fil_gestion', code:'GEST', nom:'Gestion des Entreprises', cycle:'Licence', dureeAnnees:3, description:'Comptabilité, marketing, management'},
@@ -471,7 +471,6 @@ const DB = {
         const groupesNiveau = groupes.filter(g=>g.niveauId === ueObj.niveauId);
 
         groupesNiveau.forEach(grp=>{
-          // CC
           evLMDIdx++;
           evalsLMD.push({
             id:'evLMD_' + evLMDIdx,
@@ -486,7 +485,6 @@ const DB = {
             anneeId: annee.id
           });
 
-          // Examen
           evLMDIdx++;
           evalsLMD.push({
             id:'evLMD_' + evLMDIdx,
