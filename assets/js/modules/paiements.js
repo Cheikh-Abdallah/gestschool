@@ -95,6 +95,7 @@ const Paiements = {
                     <select class="form-select" id="payFrais" required></select>
                     <div class="invalid-feedback">Motif obligatoire.</div>
                   </div>
+
                   <div class="col-md-6">
                     <label class="form-label">Montant attendu</label>
                     <input class="form-control" id="payAttendu" readonly>
@@ -104,6 +105,7 @@ const Paiements = {
                     <input type="number" class="form-control" id="payMontant" min="0" required>
                     <div class="invalid-feedback">Montant obligatoire.</div>
                   </div>
+
                   <div class="col-md-6">
                     <label class="form-label">Mode de paiement *</label>
                     <select class="form-select" id="payMode" required>
@@ -121,6 +123,7 @@ const Paiements = {
                     <input type="date" class="form-control" id="payDate" required>
                     <div class="invalid-feedback">Date obligatoire.</div>
                   </div>
+
                   <div class="col-12">
                     <div class="alert alert-info small mb-0 d-none" id="payInfo"></div>
                   </div>
@@ -133,24 +136,6 @@ const Paiements = {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      </div>
-
-      <!-- Modale reçu -->
-      <div class="modal fade" id="modalRecu" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content">
-            <div class="modal-header no-print">
-              <h6 class="modal-title"><i class="bi bi-receipt me-1"></i> Reçu de paiement</h6>
-              <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-secondary" id="btnPrintRecu">
-                  <i class="bi bi-printer"></i> Imprimer
-                </button>
-                <button class="btn-close" data-bs-dismiss="modal"></button>
-              </div>
-            </div>
-            <div class="modal-body" id="recuBody"></div>
           </div>
         </div>
       </div>
@@ -191,16 +176,6 @@ const Paiements = {
     document.getElementById('btnAddPay').onclick = ()=> this.openPayForm();
     document.getElementById('btnAddFrais').onclick = ()=> this.openFraisModal();
     document.getElementById('btnExportCsvPay').onclick = ()=> this.exportCsv();
-
-    // ═══ CORRIGÉ : mode isolé pour l'impression ═══
-    document.getElementById('btnPrintRecu').onclick = ()=>{
-      document.body.classList.add('printing-doc');
-      setTimeout(()=>{
-        window.print();
-        setTimeout(()=> document.body.classList.remove('printing-doc'), 500);
-      }, 50);
-    };
-
     document.getElementById('formPay').onsubmit = (e)=>{ e.preventDefault(); this.savePay(); };
     document.getElementById('btnSaveFrais').onclick = ()=> this.saveFrais();
 
@@ -784,7 +759,7 @@ const Paiements = {
   },
 
   // ═══════════════════════════════════════════════════════════
-  // REÇU — CORRIGÉ (backtick orphelin supprimé + design pro)
+  // IMPRESSION DU REÇU DANS UN ONGLET DÉDIÉ (100% FIABLE)
   // ═══════════════════════════════════════════════════════════
   showRecu(id){
     const p = Storage.getById('paiements', id);
@@ -794,11 +769,9 @@ const Paiements = {
     const param = Storage.read().parametres || {};
     const annule = p.statut === 'annulé';
 
-    document.getElementById('recuBody').innerHTML = `
+    const recuHtml = `
       <div class="recu">
         ${Utils.enteteDocument('REÇU DE PAIEMENT')}
-
-        <!-- Bandeau transaction -->
         <div class="recu-bandeau ${annule ? 'recu-annule' : 'recu-valide'}">
           <div>
             <div class="recu-bandeau-label">N° de transaction</div>
@@ -809,8 +782,6 @@ const Paiements = {
             <div class="recu-bandeau-statut">${annule ? '✕ ANNULÉ' : '✓ VALIDÉ'}</div>
           </div>
         </div>
-
-        <!-- Info élève -->
         <div class="recu-section">
           <div class="recu-section-title">Informations de l'élève</div>
           <table class="recu-table">
@@ -819,8 +790,6 @@ const Paiements = {
             <tr><th>Classe</th><td>${cls ? Utils.escapeHtml(cls.nom) : '—'}</td></tr>
           </table>
         </div>
-
-        <!-- Détails paiement -->
         <div class="recu-section">
           <div class="recu-section-title">Détails du paiement</div>
           <table class="recu-table">
@@ -831,43 +800,69 @@ const Paiements = {
             <tr><th>Encaissé par</th><td>${Utils.escapeHtml(p.encaissePar || '—')}</td></tr>
           </table>
         </div>
-
-        <!-- Montant payé -->
         <div class="recu-montant ${annule ? 'recu-montant-annule' : ''}">
           <div class="recu-montant-label">MONTANT PAYÉ</div>
           <div class="recu-montant-valeur">${Utils.formatFCFA(p.montantPaye)}</div>
         </div>
-
         ${annule ? `
           <div class="recu-alerte-annule">
             <strong>⚠ Ce paiement a été annulé</strong><br>
             Annulé le ${Utils.formatDate(p.annuleLe)} par ${Utils.escapeHtml(p.annulePar || '—')}
           </div>
         ` : ''}
-
-        <!-- Signatures -->
         <div class="recu-signatures">
-          <div>
-            <div class="recu-sign-label">Le Caissier</div>
-            <div class="recu-sign-line"></div>
-          </div>
-          <div>
-            <div class="recu-sign-label">Le Directeur</div>
-            <div class="recu-sign-name">${Utils.escapeHtml(param.signDirecteur || param.directeur || '')}</div>
-            <div class="recu-sign-line"></div>
-          </div>
-          <div>
-            <div class="recu-sign-label">Cachet</div>
-            <div class="recu-sign-line"></div>
-          </div>
+          <div><div class="recu-sign-label">Le Caissier</div><div class="recu-sign-line"></div></div>
+          <div><div class="recu-sign-label">Le Directeur</div><div class="recu-sign-name">${Utils.escapeHtml(param.signDirecteur || param.directeur || '')}</div><div class="recu-sign-line"></div></div>
+          <div><div class="recu-sign-label">Cachet</div><div class="recu-sign-line"></div></div>
         </div>
-
         <div class="recu-mention">
           Ce reçu ne vaut que pour le montant indiqué ci-dessus. Conservez-le précieusement.
         </div>
       </div>
     `;
-    new bootstrap.Modal(document.getElementById('modalRecu')).show();
+
+    // Ouverture de la fenêtre d'impression
+    const printWindow = window.open('', '_blank');
+    if(!printWindow){
+      Notify.toast('Veuillez autoriser les pop-ups pour imprimer le reçu.', 'danger');
+      return;
+    }
+
+    // Calcul du chemin de base pour charger le CSS correctement
+    const basePath = window.location.pathname.replace('app.html', '').replace(/\/$/, '');
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="fr">
+      <head>
+        <meta charset="UTF-8">
+        <title>Reçu - ${p.transactionId}</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+        <link rel="stylesheet" href="${window.location.origin}${basePath}/assets/css/style.css">
+        <link rel="stylesheet" href="${window.location.origin}${basePath}/assets/css/paiements.css">
+        <style>
+          body { background: #f4f6fa; padding: 20px; }
+          .recu { background: #fff; max-width: 800px; margin: 0 auto; padding: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px; }
+          @media print {
+            @page { size: A4 portrait; margin: 10mm; }
+            body { background: #fff; padding: 0; }
+            .recu { box-shadow: none; padding: 0; max-width: 100%; border-radius: 0; }
+            .no-print { display: none !important; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print mb-3 text-center">
+          <button onclick="window.print()" class="btn btn-primary btn-lg">
+            <i class="bi bi-printer"></i> Lancer l'impression
+          </button>
+        </div>
+        ${recuHtml}
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
   },
 
   exportCsv(){
