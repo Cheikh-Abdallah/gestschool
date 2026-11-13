@@ -759,7 +759,7 @@ const Paiements = {
   },
 
   // ═══════════════════════════════════════════════════════════
-  // IMPRESSION DU REÇU DANS UN ONGLET DÉDIÉ (100% FIABLE)
+  // IMPRESSION DU REÇU (FORMAT A4 STRICT, 1 SEULE PAGE)
   // ═══════════════════════════════════════════════════════════
   showRecu(id){
     const p = Storage.getById('paiements', id);
@@ -821,14 +821,12 @@ const Paiements = {
       </div>
     `;
 
-    // Ouverture de la fenêtre d'impression
     const printWindow = window.open('', '_blank');
     if(!printWindow){
       Notify.toast('Veuillez autoriser les pop-ups pour imprimer le reçu.', 'danger');
       return;
     }
 
-    // Calcul du chemin de base pour charger le CSS correctement
     const basePath = window.location.pathname.replace('app.html', '').replace(/\/$/, '');
 
     printWindow.document.write(`
@@ -842,13 +840,40 @@ const Paiements = {
         <link rel="stylesheet" href="${window.location.origin}${basePath}/assets/css/style.css">
         <link rel="stylesheet" href="${window.location.origin}${basePath}/assets/css/paiements.css">
         <style>
+          /* Styles écran */
           body { background: #f4f6fa; padding: 20px; }
-          .recu { background: #fff; max-width: 800px; margin: 0 auto; padding: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px; }
+          .recu { background: #fff; max-width: 800px; margin: 0 auto; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px; }
+          
+          /* Styles STRICTS pour l'impression A4 */
           @media print {
             @page { size: A4 portrait; margin: 10mm; }
-            body { background: #fff; padding: 0; }
-            .recu { box-shadow: none; padding: 0; max-width: 100%; border-radius: 0; }
+            body { 
+              background: #fff !important; 
+              padding: 0 !important; 
+              margin: 0 !important;
+              font-size: 11px !important; /* Force une police plus petite pour tout tenir */
+            }
+            .recu { 
+              box-shadow: none !important; 
+              padding: 0 !important; 
+              max-width: 100% !important; 
+              border-radius: 0 !important; 
+              margin: 0 !important;
+            }
             .no-print { display: none !important; }
+            
+            /* Compactage du reçu pour éviter le débordement */
+            .recu-table { font-size: 11px !important; }
+            .recu-table th, .recu-table td { padding: 3px 6px !important; }
+            .recu-section-title { font-size: 11px !important; margin-bottom: 3px !important; }
+            .recu-montant-valeur { font-size: 18px !important; }
+            .recu-bandeau-num { font-size: 13px !important; }
+            .recu-bandeau-statut { font-size: 13px !important; }
+            .entete-doc { margin-bottom: 10px !important; padding-bottom: 5px !important; }
+            .entete-doc-nom { font-size: 15px !important; }
+            .recu-signatures { margin-top: 15px !important; }
+            .recu-sign-line { margin-top: 20px !important; }
+            .recu-mention { font-size: 9px !important; margin-top: 10px !important; }
           }
         </style>
       </head>
