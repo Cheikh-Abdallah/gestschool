@@ -7,7 +7,7 @@ const Paiements = {
   state: {
     tab: 'paiements',
     page: 1,
-    pageSize: 15,
+    pageSize: 14,
     search: '',
     filtreClasse: '',
     filtreMode: '',
