@@ -337,12 +337,12 @@ const DB = {
     // UTILISATEURS (6 comptes démo)
     // ============================================================
     const utilisateurs = [
-      {id:'usr_admin',login:'admin',     password:'admin123',nom:'Amadou DIOP',   role:'admin'},
-      {id:'usr_dir',  login:'directeur', password:'dir123',  nom:'Ibrahima SARR', role:'directeur'},
-      {id:'usr_sec',  login:'secretaire',password:'sec123',  nom:'Aminata FALL',  role:'secretaire'},
-      {id:'usr_com',  login:'comptable', password:'com123',  nom:'Moussa BA',     role:'comptable'},
-      {id:'usr_ens',  login:'enseignant',password:'ens123',  nom:'Awa NDIAYE',    role:'enseignant'},
-      {id:'usr_surv', login:'surveillant',password:'surv123',nom:'Cheikh GUEYE',  role:'surveillant'}
+      {id:'usr_admin',login:'admin',     password:'admin123',nom:'Admin',   role:'admin'},
+      {id:'usr_dir',  login:'directeur', password:'dir123',  nom:'Directeur', role:'directeur'},
+      {id:'usr_sec',  login:'secretaire',password:'sec123',  nom:'Secretaire',  role:'secretaire'},
+      {id:'usr_com',  login:'comptable', password:'com123',  nom:'Comptable',     role:'comptable'},
+      {id:'usr_ens',  login:'enseignant',password:'ens123',  nom:'Enseignant',    role:'enseignant'},
+      {id:'usr_surv', login:'surveillant',password:'surv123',nom:'Surveillant',  role:'surveillant'}
     ];
 
     // ============================================================
