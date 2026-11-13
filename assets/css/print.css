@@ -1,6 +1,6 @@
 /* ============================================================
-   STYLES D'IMPRESSION — v4 (détection auto de modale)
-   Objectif : imprimer 1 seule chose → la modale OU la page
+   STYLES D'IMPRESSION — v5 (tout dans @media print)
+   Objectif : imprimer 1 seule chose, 1 seule page A4
    ============================================================ */
 
 @media print{
@@ -46,16 +46,13 @@
     display: none !important;
   }
 
-  /* ═══ DÉTECTION MODALE OUVERTE ═══
-     Si une modale .show existe dans le DOM, on cache tout SAUF la modale.
-     Utilise :has() (supporté Chrome 105+, Safari 15.4+, Firefox 121+)
-     Fallback : la classe .printing-doc ajoutée par JS */
+  /* ═══ DÉTECTION MODALE OUVERTE ═══ */
   body:has(.modal.show) .main-wrapper,
   body.printing-doc .main-wrapper{
     display: none !important;
   }
 
-  /* La modale : neutraliser Bootstrap */
+  /* Modale : neutraliser Bootstrap */
   .modal,
   .modal.show,
   .modal.fade,
@@ -128,8 +125,9 @@
 
   .fiche-eleve th,
   .bulletin-a4 th,
-  .rap-doc th{
-    background: #EFF6FF !important;
+  .rap-doc th,
+  .recu th{
+    background: #F3F4F6 !important;
     font-weight: 600 !important;
   }
 
@@ -165,13 +163,90 @@
     margin-top: 20px !important;
   }
 
-  /* ═══ MULTI-PAGES (bulletins en lot) ═══ */
-  .page-break{
-    page-break-before: always;
+  /* ═══ REÇU — IMPRESSION A4 PROPRE ═══ */
+  .recu{
+    font-size: 10.5px !important;
+    color: #000 !important;
   }
 
-  /* ═══ SUPPRIMER PAGES VIERGES EN FIN ═══ */
-  body > *:last-child::after{
-    content: none !important;
+  .recu-bandeau{
+    padding: 8px 12px !important;
+    border-radius: 6px !important;
+    margin-bottom: 10px !important;
+    color: #fff !important;
+    page-break-inside: avoid;
   }
+  .recu-bandeau.recu-valide{
+    background: #16A34A !important;
+  }
+  .recu-bandeau.recu-annule{
+    background: #DC2626 !important;
+  }
+
+  .recu-bandeau-num{ font-size: 12px !important; }
+  .recu-bandeau-statut{ font-size: 13px !important; }
+
+  .recu-section{ margin-bottom: 8px !important; page-break-inside: avoid; }
+  .recu-section-title{
+    font-size: 9px !important;
+    color: #1D4ED8 !important;
+    margin-bottom: 4px !important;
+    padding-bottom: 2px !important;
+  }
+
+  .recu-table{ font-size: 10px !important; }
+  .recu-table th,
+  .recu-table td{
+    padding: 3px 6px !important;
+    border: 1px solid #333 !important;
+    color: #000 !important;
+  }
+  .recu-table th{ background: #F3F4F6 !important; width: 35% !important; }
+
+  .recu-montant{
+    background: #F0FDF4 !important;
+    border: 2px solid #16A34A !important;
+    padding: 10px !important;
+    margin: 10px 0 !important;
+    border-radius: 8px !important;
+    page-break-inside: avoid;
+  }
+  .recu-montant.recu-montant-annule{
+    background: #F9FAFB !important;
+    border-color: #9CA3AF !important;
+  }
+  .recu-montant-valeur{
+    font-size: 20px !important;
+    color: #16A34A !important;
+    font-weight: 800 !important;
+  }
+  .recu-montant-annule .recu-montant-valeur{ color: #9CA3AF !important; }
+  .recu-montant-label{
+    font-size: 9px !important;
+    color: #16A34A !important;
+  }
+
+  .recu-alerte-annule{
+    background: #FEF2F2 !important;
+    border-left: 3px solid #DC2626 !important;
+    padding: 6px 10px !important;
+    font-size: 10px !important;
+    margin: 8px 0 !important;
+  }
+
+  .recu-signatures{
+    margin-top: 25px !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  .recu-sign-line{ margin-top: 30px !important; }
+
+  .recu-mention{
+    font-size: 8px !important;
+    margin-top: 15px !important;
+    padding-top: 5px !important;
+  }
+
+  /* ═══ MULTI-PAGES ═══ */
+  .page-break{ page-break-before: always; }
 }
