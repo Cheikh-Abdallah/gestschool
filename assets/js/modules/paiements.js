@@ -5,7 +5,6 @@
  */
 const Paiements = {
   state: {
-    // Onglet actif : "paiements" | "frais" | "impayes" | "rapport"
     tab: 'paiements',
     page: 1,
     pageSize: 15,
@@ -71,7 +70,6 @@ const Paiements = {
           <li class="nav-item"><a class="nav-link" data-tab="impayes">Impayés</a></li>
           <li class="nav-item"><a class="nav-link" data-tab="rapport">Rapport financier</a></li>
         </ul>
-
         <div id="tabContent"></div>
       </div>
 
@@ -97,7 +95,6 @@ const Paiements = {
                     <select class="form-select" id="payFrais" required></select>
                     <div class="invalid-feedback">Motif obligatoire.</div>
                   </div>
-
                   <div class="col-md-6">
                     <label class="form-label">Montant attendu</label>
                     <input class="form-control" id="payAttendu" readonly>
@@ -107,7 +104,6 @@ const Paiements = {
                     <input type="number" class="form-control" id="payMontant" min="0" required>
                     <div class="invalid-feedback">Montant obligatoire.</div>
                   </div>
-
                   <div class="col-md-6">
                     <label class="form-label">Mode de paiement *</label>
                     <select class="form-select" id="payMode" required>
@@ -125,7 +121,6 @@ const Paiements = {
                     <input type="date" class="form-control" id="payDate" required>
                     <div class="invalid-feedback">Date obligatoire.</div>
                   </div>
-
                   <div class="col-12">
                     <div class="alert alert-info small mb-0 d-none" id="payInfo"></div>
                   </div>
@@ -196,17 +191,24 @@ const Paiements = {
     document.getElementById('btnAddPay').onclick = ()=> this.openPayForm();
     document.getElementById('btnAddFrais').onclick = ()=> this.openFraisModal();
     document.getElementById('btnExportCsvPay').onclick = ()=> this.exportCsv();
-    document.getElementById('btnPrintRecu').onclick = ()=> window.print();
+
+    // ═══ CORRIGÉ : mode isolé pour l'impression ═══
+    document.getElementById('btnPrintRecu').onclick = ()=>{
+      document.body.classList.add('printing-doc');
+      setTimeout(()=>{
+        window.print();
+        setTimeout(()=> document.body.classList.remove('printing-doc'), 500);
+      }, 50);
+    };
+
     document.getElementById('formPay').onsubmit = (e)=>{ e.preventDefault(); this.savePay(); };
     document.getElementById('btnSaveFrais').onclick = ()=> this.saveFrais();
 
-    // Recalcul du reste à payer quand l'élève ou le frais change
     document.getElementById('payEleve').onchange = ()=> this.updatePayInfo();
     document.getElementById('payFrais').onchange = ()=> this.updatePayInfo();
     document.getElementById('payMontant').oninput = ()=> this.updatePayInfo();
   },
 
-  // ========================= Onglets =========================
   switchTab(tab){
     this.state.tab = tab;
     document.querySelectorAll('#payTabs .nav-link').forEach(l=>{
@@ -228,7 +230,6 @@ const Paiements = {
     this.switchTab(this.state.tab);
   },
 
-  // ========================= Calculs =========================
   computeStats(){
     const eleves = Storage.getAll('eleves');
     const frais = Storage.getAll('frais');
@@ -245,10 +246,6 @@ const Paiements = {
     return {attendu, encaisse, impaye, taux, eleves, frais, paiements};
   },
 
-  /**
-   * Calcule le solde détaillé d'un élève :
-   * pour chaque frais de sa classe → attendu, déjà payé, reste.
-   */
   computeSoldeEleve(eleveId){
     const el = Storage.getById('eleves', eleveId);
     if(!el) return null;
@@ -271,11 +268,9 @@ const Paiements = {
     const totalAttendu = details.reduce((s,d)=>s+d.attendu, 0);
     const totalPaye = details.reduce((s,d)=>s+d.paye, 0);
     const totalReste = Math.max(0, totalAttendu - totalPaye);
-
     return {details, totalAttendu, totalPaye, totalReste};
   },
 
-  // ========================= Onglet Paiements =========================
   renderPaiements(container){
     const classes = Storage.getAll('classes');
     container.innerHTML = `
@@ -329,7 +324,6 @@ const Paiements = {
       </div>
     `;
 
-    // Events
     document.getElementById('fSearchPay').addEventListener('input', e=>{
       this.state.search = e.target.value.trim().toLowerCase();
       this.state.page = 1;
@@ -348,7 +342,6 @@ const Paiements = {
   getFilteredPaiements(){
     let list = Storage.getAll('paiements');
     const s = this.state;
-
     if(s.filtreClasse){
       list = list.filter(p=>{
         const el = Storage.getById('eleves', p.eleveId);
@@ -362,7 +355,6 @@ const Paiements = {
         return el && ((el.nom+' '+el.prenom+' '+el.matricule+' '+p.transactionId).toLowerCase().includes(s.search));
       });
     }
-
     list.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
     return list;
   },
@@ -433,11 +425,9 @@ const Paiements = {
     });
   },
 
-  // ========================= Onglet Frais =========================
   renderFrais(container){
     const classes = Storage.getAll('classes');
     const frais = Storage.getAll('frais');
-
     container.innerHTML = `
       <p class="small text-muted">Grille tarifaire appliquée à chaque classe (inscription + mensualités + frais annexes).</p>
       <div class="table-responsive">
@@ -477,7 +467,6 @@ const Paiements = {
   openFraisModal(){
     const classes = Storage.getAll('classes');
     const frais = Storage.getAll('frais');
-
     let html = `<div class="alert alert-info small mb-3">
       Définissez pour chaque classe les montants des frais d'inscription et de la mensualité.
       Les 9 mensualités seront générées automatiquement avec le même montant.
@@ -505,7 +494,6 @@ const Paiements = {
         </tbody>
       </table>
     </div>`;
-
     document.getElementById('fraisBody').innerHTML = html;
     new bootstrap.Modal(document.getElementById('modalFrais')).show();
   },
@@ -518,7 +506,6 @@ const Paiements = {
       const insc = parseInt(row.querySelector('[data-field="inscription"]').value) || 0;
       const mens = parseInt(row.querySelector('[data-field="mensualite"]').value) || 0;
 
-      // Frais inscription
       const existingInsc = Storage.getAll('frais').find(f=>f.classeId===classeId && f.type==='inscription');
       if(existingInsc){
         Storage.update('frais', existingInsc.id, {montant:insc});
@@ -526,7 +513,6 @@ const Paiements = {
         Storage.create('frais', {classeId, libelle:"Frais d'inscription", montant:insc, type:'inscription', anneeId:anneeActive?.id});
       }
 
-      // Mensualités (1 à 9)
       for(let m=1;m<=9;m++){
         const existing = Storage.getAll('frais').find(f=>f.classeId===classeId && f.type==='mensualite' && f.mois===m);
         if(existing){
@@ -541,18 +527,15 @@ const Paiements = {
     this.refresh();
   },
 
-  // ========================= Onglet Impayés =========================
   renderImpayes(container){
     const eleves = Storage.getAll('eleves');
     const impayes = [];
-
     eleves.forEach(el=>{
       const solde = this.computeSoldeEleve(el.id);
       if(solde && solde.totalReste > 0){
         impayes.push({eleve: el, ...solde});
       }
     });
-
     impayes.sort((a,b)=>b.totalReste - a.totalReste);
 
     container.innerHTML = `
@@ -601,12 +584,10 @@ const Paiements = {
     });
   },
 
-  // ========================= Onglet Rapport =========================
   renderRapport(container){
     const paiements = Storage.getAll('paiements').filter(p=>p.statut !== 'annulé');
     const today = new Date().toISOString().slice(0,10);
     const moisCourant = today.slice(0,7);
-
     const duJour = paiements.filter(p=>p.date === today);
     const duMois = paiements.filter(p=>(p.date||'').startsWith(moisCourant));
 
@@ -621,7 +602,6 @@ const Paiements = {
       parMois[m] = (parMois[m]||0) + (p.montantPaye||0);
     });
     const moisSorted = Object.entries(parMois).sort();
-
     const stats = this.computeStats();
 
     container.innerHTML = `
@@ -669,13 +649,11 @@ const Paiements = {
     `;
   },
 
-  // ========================= Formulaire paiement =========================
   openPayForm(id=null, preselectedEleveId=null){
     const modal = new bootstrap.Modal(document.getElementById('modalPay'));
     const form = document.getElementById('formPay');
     form.classList.remove('was-validated');
 
-    // Élèves triés par nom
     const eleves = Storage.getAll('eleves').sort((a,b)=>a.nom.localeCompare(b.nom));
     const selEl = document.getElementById('payEleve');
     selEl.innerHTML = '<option value="">— Choisir —</option>' +
@@ -697,10 +675,7 @@ const Paiements = {
       document.getElementById('payAttendu').value = '';
     }
     document.getElementById('payMontant').value = '';
-
-    // Écouter changement élève pour peupler les frais
     selEl.onchange = ()=> this.updatePayFraisSelect();
-
     modal.show();
     if(preselectedEleveId) this.updatePayInfo();
   },
@@ -771,7 +746,6 @@ const Paiements = {
 
     const anneeActive = Storage.getAllIncludingArchived('annees').find(a=>a.active);
 
-    // Numéro de transaction unique
     const all = Storage.getAllIncludingArchived('paiements');
     const maxNum = all.reduce((m,p)=>{
       const n = parseInt((p.transactionId||'').replace(/\D/g,'')) || 0;
@@ -809,40 +783,89 @@ const Paiements = {
     this.refresh();
   },
 
+  // ═══════════════════════════════════════════════════════════
+  // REÇU — CORRIGÉ (backtick orphelin supprimé + design pro)
+  // ═══════════════════════════════════════════════════════════
   showRecu(id){
     const p = Storage.getById('paiements', id);
     if(!p) return;
     const el = Storage.getById('eleves', p.eleveId);
     const cls = el ? Storage.getById('classes', el.classeId) : null;
-    const param = Storage.read().parametres;
-    const annee = Storage.getAllIncludingArchived('annees').find(a=>a.active);
+    const param = Storage.read().parametres || {};
+    const annule = p.statut === 'annulé';
 
     document.getElementById('recuBody').innerHTML = `
       <div class="recu">
         ${Utils.enteteDocument('REÇU DE PAIEMENT')}
 
-        <table class="table table-bordered table-sm">
-          <tbody>
-            <tr><th style="width:40%">N° Transaction</th><td><strong>${Utils.escapeHtml(p.transactionId)}</strong></td></tr>
-            <tr><th>Élève</th><td><strong>${el?Utils.escapeHtml(el.prenom+' '+el.nom):'—'}</strong></td></tr>
-            <tr><th>Matricule</th><td>${el?Utils.escapeHtml(el.matricule):'—'}</td></tr>
-            <tr><th>Classe</th><td>${cls?Utils.escapeHtml(cls.nom):'—'}</td></tr>
-            <tr><th>Motif</th><td>${Utils.escapeHtml(p.libelle)}</td></tr>
-            <tr><th>Montant attendu</th><td>${Utils.formatFCFA(p.montantAttendu||0)}</td></tr>
-            <tr><th>Montant payé</th><td class="fw-bold text-success fs-5">${Utils.formatFCFA(p.montantPaye)}</td></tr>
-            <tr><th>Mode de paiement</th><td>${Utils.escapeHtml(p.mode)}</td></tr>
-            <tr><th>Date</th><td>${Utils.formatDate(p.date)}</td></tr>
-            <tr><th>Encaissé par</th><td>${Utils.escapeHtml(p.encaissePar||'—')}</td></tr>
-            <tr><th>Statut</th><td>${p.statut==='annulé'?'<span class="text-danger">ANNULÉ</span>':'<span class="text-success">Validé</span>'}</td></tr>
-          </tbody>
-        </table>
+        <!-- Bandeau transaction -->
+        <div class="recu-bandeau ${annule ? 'recu-annule' : 'recu-valide'}">
+          <div>
+            <div class="recu-bandeau-label">N° de transaction</div>
+            <div class="recu-bandeau-num">${Utils.escapeHtml(p.transactionId)}</div>
+          </div>
+          <div class="text-end">
+            <div class="recu-bandeau-label">Statut</div>
+            <div class="recu-bandeau-statut">${annule ? '✕ ANNULÉ' : '✓ VALIDÉ'}</div>
+          </div>
+        </div>
 
+        <!-- Info élève -->
+        <div class="recu-section">
+          <div class="recu-section-title">Informations de l'élève</div>
+          <table class="recu-table">
+            <tr><th>Nom & Prénom</th><td>${el ? Utils.escapeHtml(el.prenom+' '+el.nom) : '—'}</td></tr>
+            <tr><th>Matricule</th><td>${el ? Utils.escapeHtml(el.matricule) : '—'}</td></tr>
+            <tr><th>Classe</th><td>${cls ? Utils.escapeHtml(cls.nom) : '—'}</td></tr>
+          </table>
+        </div>
+
+        <!-- Détails paiement -->
+        <div class="recu-section">
+          <div class="recu-section-title">Détails du paiement</div>
+          <table class="recu-table">
+            <tr><th>Motif</th><td>${Utils.escapeHtml(p.libelle)}</td></tr>
+            <tr><th>Montant attendu</th><td>${Utils.formatFCFA(p.montantAttendu || 0)}</td></tr>
+            <tr><th>Mode de paiement</th><td>${Utils.escapeHtml(p.mode)}</td></tr>
+            <tr><th>Date du paiement</th><td>${Utils.formatDate(p.date)}</td></tr>
+            <tr><th>Encaissé par</th><td>${Utils.escapeHtml(p.encaissePar || '—')}</td></tr>
+          </table>
+        </div>
+
+        <!-- Montant payé -->
+        <div class="recu-montant ${annule ? 'recu-montant-annule' : ''}">
+          <div class="recu-montant-label">MONTANT PAYÉ</div>
+          <div class="recu-montant-valeur">${Utils.formatFCFA(p.montantPaye)}</div>
+        </div>
+
+        ${annule ? `
+          <div class="recu-alerte-annule">
+            <strong>⚠ Ce paiement a été annulé</strong><br>
+            Annulé le ${Utils.formatDate(p.annuleLe)} par ${Utils.escapeHtml(p.annulePar || '—')}
+          </div>
+        ` : ''}
+
+        <!-- Signatures -->
         <div class="recu-signatures">
-          <div>Le Caissier<br><br><br>______________________</div>
-          <div>Le Directeur<br><br><br>${Utils.escapeHtml(param.signDirecteur || param.directeur || '')}<br><small class="text-muted">Cachet de l'établissement</small></div>
+          <div>
+            <div class="recu-sign-label">Le Caissier</div>
+            <div class="recu-sign-line"></div>
+          </div>
+          <div>
+            <div class="recu-sign-label">Le Directeur</div>
+            <div class="recu-sign-name">${Utils.escapeHtml(param.signDirecteur || param.directeur || '')}</div>
+            <div class="recu-sign-line"></div>
+          </div>
+          <div>
+            <div class="recu-sign-label">Cachet</div>
+            <div class="recu-sign-line"></div>
+          </div>
+        </div>
+
+        <div class="recu-mention">
+          Ce reçu ne vaut que pour le montant indiqué ci-dessus. Conservez-le précieusement.
         </div>
       </div>
-    `;
     `;
     new bootstrap.Modal(document.getElementById('modalRecu')).show();
   },
