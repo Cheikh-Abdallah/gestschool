@@ -2,6 +2,7 @@
  * Module 9 : Bulletins scolaires.
  * Génération individuelle ou en lot, calculs pondérés,
  * rangs, moyennes de classe, mentions et impressions A4.
+ * S'adapte automatiquement au mode (secondaire / supérieur).
  */
 const Bulletins = {
   POIDS: {
@@ -16,14 +17,17 @@ const Bulletins = {
     classeId: '',
     periode: '',
     eleveId: '',
-    mode: 'individuel' // 'individuel' | 'lot'
+    mode: 'individuel'
   },
 
   render(container){
     this.container = container;
     const classes = Storage.getAll('classes');
     const anneeActive = Storage.getAllIncludingArchived('annees').find(a=>a.active);
-    const periodes = anneeActive?.periodes || ['Trimestre 1','Trimestre 2','Trimestre 3'];
+    let periodes = ['Trimestre 1','Trimestre 2','Trimestre 3'];
+    if(anneeActive && anneeActive.periodes && anneeActive.periodes.length){
+      periodes = anneeActive.periodes.map(p=>p.nom || p);
+    }
 
     container.innerHTML = `
       <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 no-print">
@@ -104,9 +108,14 @@ const Bulletins = {
       };
     });
     document.getElementById('btnGenerer').onclick = ()=> this.generer();
-    document.getElementById('btnImprimer').onclick = ()=> window.print();
+    document.getElementById('btnImprimer').onclick = ()=>{
+      document.body.classList.add('printing-doc');
+      setTimeout(()=>{
+        window.print();
+        setTimeout(()=> document.body.classList.remove('printing-doc'), 500);
+      }, 50);
+    };
 
-    // Pré-remplir
     this.state.periode = document.getElementById('bulPeriode').value;
   },
 
@@ -127,14 +136,6 @@ const Bulletins = {
   // ============================================================
   // CALCULS CENTRAUX
   // ============================================================
-
-  /**
-   * Calcule les résultats d'une classe pour une période donnée.
-   * Retourne un objet {
-   *   classe, matieres, eleves: [{eleve, notesParMatiere, moyenne, rang, mention, decision}],
-   *   stats: {moyClasse, moyMin, moyMax, effectif}
-   * }
-   */
   calculerResultats(classeId, periode){
     const classe = Storage.getById('classes', classeId);
     if(!classe) return null;
@@ -143,19 +144,16 @@ const Bulletins = {
       .filter(e=>e.classeId === classeId)
       .sort((a,b)=>a.nom.localeCompare(b.nom));
 
-    // Matières de la classe
     const matieres = Storage.getAll('matieres')
       .filter(m => (m.classeIds||[]).includes(classeId))
       .sort((a,b)=>a.nom.localeCompare(b.nom));
 
-    // Évaluations de la période
     const evals = Storage.getAll('evaluations').filter(ev=>
       ev.classeId === classeId && ev.periode === periode
     );
 
     const allNotes = Storage.getAll('notes');
 
-    // Calcul par élève
     const resultats = eleves.map(el=>{
       let totalPoints = 0, totalCoef = 0;
       const notesParMatiere = [];
@@ -163,7 +161,6 @@ const Bulletins = {
       matieres.forEach(mat=>{
         const matEvals = evals.filter(ev=>ev.matiereId === mat.id);
         let sumNotes = 0, sumPoids = 0;
-        const notesBrutes = [];
 
         matEvals.forEach(ev=>{
           const note = allNotes.find(n=>n.evaluationId===ev.id && n.eleveId===el.id);
@@ -171,7 +168,6 @@ const Bulletins = {
             const poids = this.POIDS[ev.type] || 1;
             sumNotes += note.valeur * poids;
             sumPoids += poids;
-            notesBrutes.push({type: ev.type, note: note.valeur, poids});
           }
         });
 
@@ -186,7 +182,6 @@ const Bulletins = {
 
         notesParMatiere.push({
           matiere: mat,
-          notesBrutes,
           moyenne: moyMat,
           notePond,
           appreciation: moyMat!=null ? this.getAppreciation(moyMat) : '—'
@@ -207,7 +202,6 @@ const Bulletins = {
       };
     });
 
-    // Rangs (sur les élèves notés)
     const notes = resultats.filter(r=>r.moyenne != null).sort((a,b)=>b.moyenne - a.moyenne);
     let lastMoy = null, lastRang = 0;
     notes.forEach((r, i)=>{
@@ -220,7 +214,6 @@ const Bulletins = {
       }
     });
 
-    // Stats classe
     const moyennes = notes.map(r=>r.moyenne);
     const stats = {
       moyClasse: moyennes.length ? moyennes.reduce((a,b)=>a+b,0)/moyennes.length : 0,
@@ -267,7 +260,6 @@ const Bulletins = {
   // ============================================================
   // GÉNÉRATION
   // ============================================================
-
   generer(){
     const classeId = document.getElementById('bulClasse').value;
     const periode = document.getElementById('bulPeriode').value;
@@ -292,12 +284,11 @@ const Bulletins = {
       const eleveId = document.getElementById('bulEleve').value;
       const r = resultats.eleves.find(x=>x.eleve.id === eleveId);
       if(!r){
-        Notify.toast('Élève introuvable dans cette classe.', 'danger');
+        Notify.toast('Élève introuvable.', 'danger');
         return;
       }
       document.getElementById('bulApercu').innerHTML = this.renderBulletin(r, resultats, periode);
     } else {
-      // Lot : tous les élèves avec page-break entre chacun
       const html = resultats.eleves
         .sort((a,b)=>(a.rang||9999)-(b.rang||9999))
         .map((r, i)=> `<div class="${i>0?'page-break':''}">${this.renderBulletin(r, resultats, periode)}</div>`)
@@ -311,20 +302,15 @@ const Bulletins = {
   },
 
   renderBulletin(resultat, resultats, periode){
-    const param = Storage.read().parametres;
+    const param = Storage.read().parametres || {};
     const annee = Storage.getAllIncludingArchived('annees').find(a=>a.active);
     const el = resultat.eleve;
     const cls = resultats.classe;
     const stats = resultats.stats;
 
-    // Rang affichage
     const rangTxt = resultat.rang ? `${resultat.rang}${this.getOrdinal(resultat.rang)} / ${stats.effectif}` : 'Non évalué';
     const moyTxt = resultat.moyenne!=null ? resultat.moyenne.toFixed(2) : '—';
 
-    // Moyenne de classe affichée à 2 décimales
-    const moyClasseTxt = stats.moyClasse.toFixed(2);
-
-    // Lignes du tableau des notes
     const lignes = resultat.notesParMatiere.map(npm=>{
       const moy = npm.moyenne!=null ? npm.moyenne.toFixed(2) : '—';
       const pond = npm.notePond!=null ? npm.notePond.toFixed(2) : '—';
@@ -337,30 +323,12 @@ const Bulletins = {
       </tr>`;
     }).join('');
 
-    // Ligne moyenne finale
     const totalCoef = resultat.notesParMatiere.reduce((s,n)=>s+(n.moyenne!=null?n.matiere.coefficient:0),0);
 
     return `
       <div class="bulletin-a4">
-        <!-- EN-TÊTE -->
-        <div class="bul-head">
-          <div class="bul-head-left">
-            <div class="bul-logo">${param.logo?`<img src="${param.logo}">`:`<i class="bi bi-mortarboard-fill"></i>`}</div>
-            <div>
-              <div class="bul-ecole">${Utils.escapeHtml(param.etablissement)}</div>
-              <div class="bul-ecole-sub">${Utils.escapeHtml(param.adresse)}</div>
-              <div class="bul-ecole-sub">Tél : ${Utils.escapeHtml(param.telephone)}</div>
-            </div>
-          </div>
-          <div class="bul-head-right">
-            <div class="bul-annee">Année scolaire ${annee?.libelle||'—'}</div>
-            <div class="bul-periode">${Utils.escapeHtml(periode)}</div>
-          </div>
-        </div>
+        ${Utils.enteteDocument('BULLETIN DE NOTES — ' + periode)}
 
-        <div class="bul-title">BULLETIN DE NOTES</div>
-
-        <!-- INFOS ÉLÈVE -->
         <div class="bul-infos">
           <div class="bul-infos-grid">
             <div><strong>Matricule :</strong> ${Utils.escapeHtml(el.matricule)}</div>
@@ -374,7 +342,6 @@ const Bulletins = {
           </div>
         </div>
 
-        <!-- TABLEAU NOTES -->
         <table class="bul-table">
           <thead>
             <tr>
@@ -385,9 +352,7 @@ const Bulletins = {
               <th class="text-center">Appréciation</th>
             </tr>
           </thead>
-          <tbody>
-            ${lignes}
-          </tbody>
+          <tbody>${lignes}</tbody>
           <tfoot>
             <tr>
               <td class="fw-bold">Total</td>
@@ -399,7 +364,6 @@ const Bulletins = {
           </tfoot>
         </table>
 
-        <!-- RÉSULTATS -->
         <div class="bul-resultats">
           <div class="bul-res-col">
             <div class="bul-res-label">Moyenne générale</div>
@@ -407,7 +371,7 @@ const Bulletins = {
           </div>
           <div class="bul-res-col">
             <div class="bul-res-label">Moyenne de classe</div>
-            <div class="bul-res-value">${moyClasseTxt}/20</div>
+            <div class="bul-res-value">${stats.moyClasse.toFixed(2)}/20</div>
           </div>
           <div class="bul-res-col">
             <div class="bul-res-label">Moyenne min.</div>
@@ -427,7 +391,6 @@ const Bulletins = {
           </div>
         </div>
 
-        <!-- APPRÉCIATIONS -->
         <div class="bul-appreciation">
           <div class="bul-appr-title">Appréciation du conseil de classe</div>
           <div class="bul-appr-text">${Utils.escapeHtml(this.getAppreciationGenerale(resultat.moyenne))}</div>
@@ -438,7 +401,6 @@ const Bulletins = {
           <div><strong>Conduite :</strong> Bien</div>
         </div>
 
-        <!-- SIGNATURES -->
         <div class="bul-signatures">
           <div>
             <div class="bul-sign-label">Professeur principal</div>
@@ -446,7 +408,7 @@ const Bulletins = {
           </div>
           <div>
             <div class="bul-sign-label">Le Directeur</div>
-            <div class="bul-sign-name">${Utils.escapeHtml(param.directeur||'')}</div>
+            <div class="bul-sign-name">${Utils.escapeHtml(param.signDirecteur || param.directeur || '')}</div>
             <div class="bul-sign-line"></div>
           </div>
           <div>
@@ -456,7 +418,7 @@ const Bulletins = {
         </div>
 
         <div class="bul-footer">
-          Bulletin généré le ${Utils.formatDate(new Date().toISOString())} — ${Utils.escapeHtml(param.etablissement)}
+          Bulletin généré le ${Utils.formatDate(new Date().toISOString())} — ${Utils.escapeHtml(param.etablissement || '')}
         </div>
       </div>
     `;
