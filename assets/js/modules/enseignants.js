@@ -23,6 +23,9 @@ const Enseignants = {
           <div class="page-sub">Profils, affectations, emploi du temps et heures</div>
         </div>
         <div class="d-flex gap-2">
+          <button class="btn btn-outline-success btn-sm" id="btnImportEleves">
+  <i class="bi bi-file-earmark-excel me-1"></i> Importer Excel
+</button>
           <button class="btn btn-outline-secondary btn-sm" id="btnExportCsvEns">
             <i class="bi bi-filetype-csv me-1"></i> Exporter CSV
           </button>
@@ -249,7 +252,7 @@ const Enseignants = {
         this.refresh();
       };
     });
-
+    document.getElementById('btnImportEnseignants').onclick = () => ImportExcel.open('enseignants');
     document.getElementById('formEns').onsubmit = (e)=>{ e.preventDefault(); this.save(); };
     document.getElementById('btnPrintFicheEns').onclick = ()=> window.print();
   },
