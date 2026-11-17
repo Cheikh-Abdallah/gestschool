@@ -269,6 +269,7 @@ const Etudiants = {
       this.state.page = 1;
       this.refresh();
     };
+    document.getElementById('btnImportEtudiants').onclick = () => ImportExcel.open('eleves');
     document.getElementById('btnExportCsvEtu').onclick = ()=> this.exportCsv();
 
     document.querySelectorAll('#tblEtu th[data-sort]').forEach(th=>{
