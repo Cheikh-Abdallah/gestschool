@@ -12,9 +12,17 @@ const UE = {
           <div class="page-title">Unités d'Enseignement (UE)</div>
           <div class="page-sub">Système LMD — crédits ECTS et coefficients</div>
         </div>
-        <button class="btn btn-primary btn-sm" id="btnAddUE">
-          <i class="bi bi-plus-lg me-1"></i> Nouvelle UE
-        </button>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-success btn-sm" id="btnImportUE">
+            <i class="bi bi-file-earmark-excel me-1"></i> Importer Excel
+          </button>
+          <button class="btn btn-outline-secondary btn-sm" id="btnExportCsvUE">
+            <i class="bi bi-filetype-csv me-1"></i> Exporter CSV
+          </button>
+          <button class="btn btn-primary btn-sm" id="btnAddUE">
+            <i class="bi bi-plus-lg me-1"></i> Nouvelle UE
+          </button>
+        </div>
       </div>
 
       <div class="card-panel">
@@ -141,7 +149,6 @@ const UE = {
     document.getElementById('fNiveauUE').innerHTML = '<option value="">Tous niveaux</option>' +
       Storage.getAll('niveaux').map(n=>`<option value="${n.id}">${Utils.escapeHtml(n.libelle)}</option>`).join('');
 
-    // Niveau de la modale : vide au départ, rempli quand filière choisie
     document.getElementById('ueNiveau').innerHTML = '<option value="">— Choisir une filière d\'abord —</option>';
   },
 
@@ -179,7 +186,6 @@ const UE = {
     });
     document.getElementById('formUE').onsubmit = (e)=>{ e.preventDefault(); this.save(); };
 
-    // Cascade filière → niveau
     document.getElementById('ueFiliere').onchange = ()=>{
       const fid = document.getElementById('ueFiliere').value;
       const niveaux = Storage.getAll('niveaux').filter(n=>n.filiereId === fid);
@@ -187,6 +193,13 @@ const UE = {
         ? niveaux.map(n=>`<option value="${n.id}">${Utils.escapeHtml(n.libelle)}</option>`).join('')
         : '<option value="">— Aucun niveau dans cette filière —</option>';
     };
+
+    // ✅ Boutons avec protection
+    const btnImport = document.getElementById('btnImportUE');
+    if(btnImport) btnImport.onclick = () => ImportExcel.open('ue');
+    
+    const btnExport = document.getElementById('btnExportCsvUE');
+    if(btnExport) btnExport.onclick = () => this.exportCsv();
   },
 
   getFiltered(){
@@ -283,7 +296,6 @@ const UE = {
       document.getElementById('ueCode').value = u.code || '';
       document.getElementById('ueNom').value = u.nom || '';
       document.getElementById('ueFiliere').value = u.filiereId || '';
-      // Remplir les niveaux de cette filière
       const niveaux = Storage.getAll('niveaux').filter(n=>n.filiereId === u.filiereId);
       document.getElementById('ueNiveau').innerHTML = niveaux.map(n=>`<option value="${n.id}" ${n.id===u.niveauId?'selected':''}>${Utils.escapeHtml(n.libelle)}</option>`).join('');
       document.getElementById('ueSemestre').value = u.semestre || 'S1';
@@ -345,5 +357,25 @@ const UE = {
     Storage.remove('ue', id, true);
     Notify.toast('UE supprimée.', 'warning');
     this.refresh();
+  },
+
+  exportCsv(){
+    const list = this.getFiltered();
+    const rows = [['Code','Nom','Filière','Niveau','Semestre','Crédits ECTS','Coefficient','Type']];
+    list.forEach(u=>{
+      const filiere = Storage.getById('filieres', u.filiereId);
+      const niveau = Storage.getById('niveaux', u.niveauId);
+      rows.push([
+        u.code, u.nom, filiere?filiere.code:'', niveau?niveau.code:'',
+        u.semestre, u.creditsECTS, u.coefficient, u.typeUE
+      ]);
+    });
+    const csv = rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\n');
+    const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'ue_'+new Date().toISOString().slice(0,10)+'.csv';
+    a.click();
+    Notify.toast('Export CSV généré.', 'success');
   }
 };
