@@ -13,7 +13,6 @@ const Notes = {
   },
 
   state: {
-    // Vue liste des évaluations
     page: 1,
     pageSize: 10,
     search: '',
@@ -22,8 +21,6 @@ const Notes = {
     filtrePeriode: '',
     sortKey: 'date',
     sortDir: 'desc',
-
-    // Vue saisie
     saisieEvalId: null
   },
 
@@ -274,7 +271,13 @@ const Notes = {
 
     document.getElementById('formEval').onsubmit = (e)=>{ e.preventDefault(); this.saveEval(); };
     document.getElementById('btnSaveNotes').onclick = ()=> this.saveNotes();
-    document.getElementById('btnPrintSaisie').onclick = ()=> window.print();
+    document.getElementById('btnPrintSaisie').onclick = ()=> {
+      document.body.classList.add('printing-doc');
+      setTimeout(()=>{
+        window.print();
+        setTimeout(()=> document.body.classList.remove('printing-doc'), 500);
+      }, 50);
+    };
     document.getElementById('btnVoirClassement').onclick = ()=> this.openClassement();
     document.getElementById('btnCalcClass').onclick = ()=> this.calcClassement();
   },
@@ -283,9 +286,8 @@ const Notes = {
     const classes = Storage.getAll('classes');
     const matieres = Storage.getAll('matieres');
     const anneeActive = Storage.getAllIncludingArchived('annees').find(a=>a.active);
-    const periodes = anneeActive?.periodes || ['Trimestre 1','Trimestre 2','Trimestre 3'];
+    const periodes = (anneeActive && anneeActive.periodes && anneeActive.periodes.length) ? anneeActive.periodes.map(p=>p.nom||p) : ['Trimestre 1','Trimestre 2','Trimestre 3'];
 
-    // Filtres
     document.getElementById('fClasseEval').innerHTML =
       '<option value="">Toutes classes</option>' +
       classes.map(c=>`<option value="${c.id}">${Utils.escapeHtml(c.nom)}</option>`).join('');
@@ -296,7 +298,6 @@ const Notes = {
       '<option value="">Toutes périodes</option>' +
       periodes.map(p=>`<option value="${p}">${p}</option>`).join('');
 
-    // Modale évaluation
     document.getElementById('evClasse').innerHTML =
       '<option value="">— Choisir —</option>' +
       classes.map(c=>`<option value="${c.id}">${Utils.escapeHtml(c.nom)}</option>`).join('');
@@ -306,7 +307,6 @@ const Notes = {
     document.getElementById('evPeriode').innerHTML =
       periodes.map(p=>`<option value="${p}">${p}</option>`).join('');
 
-    // Modale classement
     document.getElementById('classClasse').innerHTML =
       classes.map(c=>`<option value="${c.id}">${Utils.escapeHtml(c.nom)}</option>`).join('');
     document.getElementById('classPeriode').innerHTML =
@@ -316,11 +316,9 @@ const Notes = {
   getFilteredEvaluations(){
     let list = Storage.getAll('evaluations');
     const s = this.state;
-
     if(s.filtreClasse)  list = list.filter(ev=>ev.classeId === s.filtreClasse);
     if(s.filtreMatiere) list = list.filter(ev=>ev.matiereId === s.filtreMatiere);
     if(s.filtrePeriode) list = list.filter(ev=>ev.periode === s.filtrePeriode);
-
     if(s.search){
       list = list.filter(ev=>{
         const cls = Storage.getById('classes', ev.classeId)?.nom || '';
@@ -328,7 +326,6 @@ const Notes = {
         return (cls+' '+mat+' '+ev.type).toLowerCase().includes(s.search);
       });
     }
-
     const dir = s.sortDir==='asc'?1:-1;
     list.sort((a,b)=>{
       let va, vb;
@@ -352,7 +349,6 @@ const Notes = {
   },
 
   refresh(){
-    // Stats
     const evals = Storage.getAll('evaluations');
     const notes = Storage.getAll('notes');
     const notesValides = notes.filter(n=>n.statut==='noté' && n.valeur!=null);
@@ -367,12 +363,10 @@ const Notes = {
         return s + Math.max(0, nbEleves - nbNotes);
       }, 0);
 
-    // Liste
     const list = this.getFilteredEvaluations();
     const total = list.length;
     const totalPages = Math.max(1, Math.ceil(total / this.state.pageSize));
     if(this.state.page > totalPages) this.state.page = totalPages;
-
     const start = (this.state.page - 1) * this.state.pageSize;
     const pageList = list.slice(start, start + this.state.pageSize);
 
@@ -469,7 +463,6 @@ const Notes = {
       anneeId:   anneeActive?.id
     };
 
-    // Doublon : même classe + matière + type + période + date
     const dup = Storage.getAll('evaluations').find(ev=>
       ev.classeId===data.classeId && ev.matiereId===data.matiereId &&
       ev.type===data.type && ev.periode===data.periode && ev.date===data.date
@@ -483,7 +476,6 @@ const Notes = {
     Notify.toast('Évaluation créée. Saisissez les notes.', 'success');
     bootstrap.Modal.getInstance(document.getElementById('modalEval')).hide();
     this.refresh();
-    // Ouvrir directement la saisie
     this.openSaisie(created.id);
   },
 
@@ -496,7 +488,6 @@ const Notes = {
     } else {
       if(!confirm('Supprimer cette évaluation ?')) return;
     }
-    // Supprimer les notes liées
     const notes = Storage.getAll('notes').filter(n=>n.evaluationId===id);
     notes.forEach(n=>Storage.remove('notes', n.id, false));
     Storage.remove('evaluations', id, true);
@@ -564,7 +555,6 @@ const Notes = {
       </div>
     `;
 
-    // Activer/désactiver input selon statut
     document.querySelectorAll('.statut-select').forEach(sel=>{
       sel.onchange = ()=>{
         const elvId = sel.dataset.eleve;
@@ -578,13 +568,11 @@ const Notes = {
         this.updateSaisieStats();
       };
     });
-    // Init : désactiver ceux qui sont absents/dispensés
     document.querySelectorAll('.statut-select').forEach(sel=>{
       const elvId = sel.dataset.eleve;
       const input = document.querySelector(`.note-input[data-eleve="${elvId}"]`);
       if(sel.value !== 'noté') input.disabled = true;
     });
-    // Stats live
     document.querySelectorAll('.note-input').forEach(inp=>{
       inp.oninput = ()=> this.updateSaisieStats();
     });
@@ -622,11 +610,9 @@ const Notes = {
       const sel = row.querySelector('.statut-select');
       const statut = sel.value;
       const valRaw = input.value.trim();
-
       const existing = Storage.getAll('notes').find(n=>n.evaluationId===evalId && n.eleveId===elvId);
 
       if(statut !== 'noté'){
-        // Absent ou dispensé
         if(existing){
           Storage.update('notes', existing.id, {statut, valeur:null});
           updated++;
@@ -640,7 +626,6 @@ const Notes = {
         return;
       }
 
-      // Statut "noté" mais note vide → on ignore (non évalué)
       if(valRaw === ''){
         if(existing){ Storage.remove('notes', existing.id, false); deleted++; }
         return;
@@ -652,7 +637,6 @@ const Notes = {
         return;
       }
 
-      // Ramener sur 20
       const val20 = +(val * (20/bareme)).toFixed(2);
 
       if(existing){
@@ -672,16 +656,6 @@ const Notes = {
     this.refresh();
   },
 
-  // ============================================================
-  // CALCULS : moyennes pondérées, rangs, classements
-  // ============================================================
-
-  /**
-   * Calcule pour chaque élève d'une classe, sur une période :
-   * - moyenne par matière (pondérée par les poids d'évaluation)
-   * - moyenne générale (pondérée par coefficients de matières)
-   * - rang
-   */
   calcClassement(){
     const classeId = document.getElementById('classClasse').value;
     const periode = document.getElementById('classPeriode').value;
@@ -695,7 +669,6 @@ const Notes = {
       return;
     }
 
-    // Évaluations de la période pour cette classe
     const evals = Storage.getAll('evaluations').filter(ev=>
       ev.classeId===classeId && ev.periode===periode
     );
@@ -708,11 +681,8 @@ const Notes = {
     const matieres = Storage.getAll('matieres').filter(m=>(m.classeIds||[]).includes(classeId));
     const notes = Storage.getAll('notes');
 
-    // Calcul par élève
     const resultats = eleves.map(el=>{
       let totalPoints = 0, totalCoef = 0;
-      const details = [];
-
       matieres.forEach(mat=>{
         const matEvals = evals.filter(ev=>ev.matiereId===mat.id);
         let sumNotes = 0, sumPoids = 0;
@@ -728,28 +698,21 @@ const Notes = {
           const moyMat = sumNotes / sumPoids;
           totalPoints += moyMat * mat.coefficient;
           totalCoef += mat.coefficient;
-          details.push({matiere: mat.nom, coef: mat.coefficient, moyenne: moyMat});
         }
       });
-
       const moyGen = totalCoef > 0 ? totalPoints / totalCoef : null;
-      return {eleve: el, moyenne: moyGen, totalCoef, details};
+      return {eleve: el, moyenne: moyGen};
     });
 
-    // Trier par moyenne descendante
     const evalues = resultats.filter(r=>r.moyenne != null).sort((a,b)=>b.moyenne - a.moyenne);
     const nonEvalues = resultats.filter(r=>r.moyenne == null);
-
-    // Attribuer rang
     evalues.forEach((r,i)=>{
       r.rang = i+1;
-      // Ex-aequo : même moyenne
       if(i>0 && Math.abs(evalues[i-1].moyenne - r.moyenne) < 0.01){
         r.rang = evalues[i-1].rang;
       }
     });
 
-    // Stats classe
     const moyennes = evalues.map(r=>r.moyenne);
     const moyClasse = moyennes.length ? moyennes.reduce((a,b)=>a+b,0)/moyennes.length : 0;
     const moyMin = moyennes.length ? Math.min(...moyennes) : 0;
@@ -764,17 +727,10 @@ const Notes = {
         <div><strong>Min :</strong> ${moyMin.toFixed(2)}</div>
         <div><strong>Max :</strong> ${moyMax.toFixed(2)}</div>
       </div>
-
       <div class="table-responsive">
         <table class="table table-hover table-sm align-middle">
           <thead>
-            <tr>
-              <th>Rang</th>
-              <th>Matricule</th>
-              <th>Nom & Prénom</th>
-              <th>Moyenne</th>
-              <th>Mention</th>
-            </tr>
+            <tr><th>Rang</th><th>Matricule</th><th>Nom & Prénom</th><th>Moyenne</th><th>Mention</th></tr>
           </thead>
           <tbody>
             ${evalues.map(r=>{
