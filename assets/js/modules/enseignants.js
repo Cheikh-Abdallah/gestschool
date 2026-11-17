@@ -23,9 +23,9 @@ const Enseignants = {
           <div class="page-sub">Profils, affectations, emploi du temps et heures</div>
         </div>
         <div class="d-flex gap-2">
-          <button class="btn btn-outline-success btn-sm" id="btnImportEleves">
-  <i class="bi bi-file-earmark-excel me-1"></i> Importer Excel
-</button>
+          <button class="btn btn-outline-success btn-sm" id="btnImportEnseignants">
+            <i class="bi bi-file-earmark-excel me-1"></i> Importer Excel
+          </button>
           <button class="btn btn-outline-secondary btn-sm" id="btnExportCsvEns">
             <i class="bi bi-filetype-csv me-1"></i> Exporter CSV
           </button>
@@ -191,7 +191,7 @@ const Enseignants = {
 
       <!-- Modale fiche -->
       <div class="modal fade" id="modalFicheEns" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
           <div class="modal-content">
             <div class="modal-header no-print">
               <h6 class="modal-title"><i class="bi bi-person-badge me-1"></i> Fiche enseignant</h6>
@@ -242,7 +242,10 @@ const Enseignants = {
     });
     document.getElementById('fSpecialiteEns').onchange = e=>{ this.state.filtreSpecialite=e.target.value; this.state.page=1; this.refresh(); };
     document.getElementById('fStatutEns').onchange     = e=>{ this.state.filtreStatut=e.target.value;     this.state.page=1; this.refresh(); };
+
+    // ✅ Boutons correctement attachés (existent dans le HTML)
     document.getElementById('btnExportCsvEns').onclick = ()=> this.exportCsv();
+    document.getElementById('btnImportEnseignants').onclick = ()=> ImportExcel.open('enseignants');
 
     document.querySelectorAll('#tblEns th[data-sort]').forEach(th=>{
       th.onclick = ()=>{
@@ -252,9 +255,17 @@ const Enseignants = {
         this.refresh();
       };
     });
-    document.getElementById('btnImportEnseignants').onclick = () => ImportExcel.open('enseignants');
+
     document.getElementById('formEns').onsubmit = (e)=>{ e.preventDefault(); this.save(); };
-    document.getElementById('btnPrintFicheEns').onclick = ()=> window.print();
+
+    // ✅ Impression fiche isolée
+    document.getElementById('btnPrintFicheEns').onclick = ()=>{
+      document.body.classList.add('printing-doc');
+      setTimeout(()=>{
+        window.print();
+        setTimeout(()=> document.body.classList.remove('printing-doc'), 500);
+      }, 50);
+    };
   },
 
   populateFilters(){
@@ -469,7 +480,7 @@ const Enseignants = {
   archive(id){
     const e = Storage.getById('enseignants', id);
     if(!e) return;
-    if(!confirm(`Archiver définitivement l'enseignant ${e.prenom} ${e.nom} ?\n(L'enseignant ne sera plus visible, mais les données restent en base.)`)) return;
+    if(!confirm(`Archiver définitivement l'enseignant ${e.prenom} ${e.nom} ?`)) return;
     Storage.remove('enseignants', id, true);
     Notify.toast('Enseignant archivé.', 'warning');
     this.refresh();
@@ -478,7 +489,7 @@ const Enseignants = {
   showFiche(id){
     const e = Storage.getById('enseignants', id);
     if(!e) return;
-    const param = Storage.read().parametres;
+    const param = Storage.read().parametres || {};
     const matieres = (e.matieres||[]).map(mid=>Storage.getById('matieres', mid)).filter(Boolean);
     const classes = (e.classes||[]).map(cid=>Storage.getById('classes', cid)).filter(Boolean);
     const edt = Storage.getAll('emploiTemps').filter(x=>x.enseignantId===e.id);
@@ -490,16 +501,9 @@ const Enseignants = {
 
     document.getElementById('ficheEnsBody').innerHTML = `
       <div class="fiche-eleve">
-        <div class="fiche-head">
-          <div>
-            <h5 class="mb-0">${Utils.escapeHtml(param.etablissement)}</h5>
-            <small class="text-muted">${Utils.escapeHtml(param.adresse)}</small><br>
-            <small class="text-muted">Tél. ${Utils.escapeHtml(param.telephone)} — Année en cours</small>
-          </div>
-          <div class="fiche-photo"><i class="bi bi-person-badge"></i></div>
-        </div>
-        <h6 class="text-center my-3 fw-bold" style="letter-spacing:1px">FICHE INDIVIDUELLE DE L'ENSEIGNANT</h6>
-        <table class="table table-bordered table-sm fiche-table">
+        ${Utils.enteteDocument('FICHE INDIVIDUELLE DE L\'ENSEIGNANT')}
+
+        <table class="table table-bordered table-sm fiche-table mt-3">
           <tbody>
             <tr><th style="width:35%">Matricule</th><td>${Utils.escapeHtml(e.matricule)}</td></tr>
             <tr><th>Nom & Prénom</th><td><strong>${Utils.escapeHtml(e.prenom+' '+e.nom)}</strong></td></tr>
@@ -517,8 +521,9 @@ const Enseignants = {
             <tr><th>Volume horaire hebdo</th><td>${heures} h</td></tr>
           </tbody>
         </table>
+
         <div class="fiche-signatures">
-          <div>Le Directeur<br><br><br>${Utils.escapeHtml(param.directeur||'')}</div>
+          <div>Le Directeur<br><br><br>${Utils.escapeHtml(param.signDirecteur || param.directeur || '')}</div>
           <div>Signature & Cachet<br><br><br>______________________</div>
         </div>
       </div>
