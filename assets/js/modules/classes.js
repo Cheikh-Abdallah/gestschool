@@ -1,18 +1,8 @@
 /**
  * Module 4 : Gestion des classes.
- * CRUD, filtres par cycle, professeur principal,
- * effectifs, liste des élèves imprimable.
  */
 const Classes = {
-  state: {
-    page: 1,
-    pageSize: 10,
-    search: '',
-    filtreCycle: '',
-    filtreNiveau: '',
-    sortKey: 'nom',
-    sortDir: 'asc'
-  },
+  state: { page:1, pageSize:10, search:'', filtreCycle:'', filtreNiveau:'', sortKey:'nom', sortDir:'asc' },
 
   render(container){
     this.container = container;
@@ -23,6 +13,9 @@ const Classes = {
           <div class="page-sub">Création, effectifs, professeur principal et listes</div>
         </div>
         <div class="d-flex gap-2">
+          <button class="btn btn-outline-success btn-sm" id="btnImportClasses">
+            <i class="bi bi-file-earmark-excel me-1"></i> Importer Excel
+          </button>
           <button class="btn btn-outline-secondary btn-sm" id="btnExportCsvCls">
             <i class="bi bi-filetype-csv me-1"></i> Exporter CSV
           </button>
@@ -199,7 +192,6 @@ const Classes = {
     });
     document.getElementById('fCycleCls').onchange  = e=>{ this.state.filtreCycle=e.target.value;  this.state.page=1; this.refresh(); };
     document.getElementById('fNiveauCls').onchange = e=>{ this.state.filtreNiveau=e.target.value; this.state.page=1; this.refresh(); };
-    document.getElementById('btnExportCsvCls').onclick = ()=> this.exportCsv();
 
     document.querySelectorAll('#tblCls th[data-sort]').forEach(th=>{
       th.onclick = ()=>{
@@ -211,32 +203,42 @@ const Classes = {
     });
 
     document.getElementById('formCls').onsubmit = (e)=>{ e.preventDefault(); this.save(); };
-    document.getElementById('btnPrintCls').onclick = ()=> window.print();
+
+    // ✅ Impression isolée
+    document.getElementById('btnPrintCls').onclick = ()=>{
+      document.body.classList.add('printing-doc');
+      setTimeout(()=>{
+        window.print();
+        setTimeout(()=> document.body.classList.remove('printing-doc'), 500);
+      }, 50);
+    };
+
+    // ✅ Boutons protégés
+    const btnImport = document.getElementById('btnImportClasses');
+    if(btnImport) btnImport.onclick = () => ImportExcel.open('classes');
+    
+    const btnExport = document.getElementById('btnExportCsvCls');
+    if(btnExport) btnExport.onclick = () => this.exportCsv();
   },
 
   populateFilters(){
-    // Niveaux uniques
     const niveaux = [...new Set(Storage.getAll('classes').map(c=>c.niveau).filter(Boolean))].sort();
     const selNiv = document.getElementById('fNiveauCls');
     selNiv.innerHTML = '<option value="">Tous niveaux</option>' +
       niveaux.map(n=>`<option value="${Utils.escapeHtml(n)}">${Utils.escapeHtml(n)}</option>`).join('');
 
-    // Années
     const annees = Storage.getAllIncludingArchived('annees');
     const selAnnee = document.getElementById('clsAnnee');
     selAnnee.innerHTML = annees.map(a=>`<option value="${a.id}" ${a.active?'selected':''}>${Utils.escapeHtml(a.libelle)}</option>`).join('');
 
-    // Prof principal
     const ens = Storage.getAll('enseignants');
     const selProf = document.getElementById('clsProf');
     selProf.innerHTML = '<option value="">— Aucun —</option>' +
       ens.map(e=>`<option value="${e.id}">${Utils.escapeHtml(e.prenom+' '+e.nom)}</option>`).join('');
 
-    // Enseignants affectés
     const selEns = document.getElementById('clsEnseignants');
     selEns.innerHTML = ens.map(e=>`<option value="${e.id}">${Utils.escapeHtml(e.prenom+' '+e.nom)}</option>`).join('');
 
-    // Matières
     const mats = Storage.getAll('matieres');
     const selMat = document.getElementById('clsMatieres');
     selMat.innerHTML = mats.map(m=>`<option value="${m.id}">${Utils.escapeHtml(m.nom)}</option>`).join('');
@@ -245,10 +247,8 @@ const Classes = {
   getFiltered(){
     let list = Storage.getAll('classes');
     const s = this.state;
-
     if(s.filtreCycle)  list = list.filter(c=>c.cycle === s.filtreCycle);
     if(s.filtreNiveau) list = list.filter(c=>c.niveau === s.filtreNiveau);
-
     if(s.search){
       list = list.filter(c=>
         (c.nom||'').toLowerCase().includes(s.search) ||
@@ -256,7 +256,6 @@ const Classes = {
         (c.serie||'').toLowerCase().includes(s.search)
       );
     }
-
     const dir = s.sortDir==='asc'?1:-1;
     list.sort((a,b)=>{
       let va, vb;
@@ -282,7 +281,6 @@ const Classes = {
     const total = list.length;
     const totalPages = Math.max(1, Math.ceil(total / this.state.pageSize));
     if(this.state.page > totalPages) this.state.page = totalPages;
-
     const start = (this.state.page - 1) * this.state.pageSize;
     const pageList = list.slice(start, start + this.state.pageSize);
 
@@ -354,8 +352,6 @@ const Classes = {
     const modal = new bootstrap.Modal(document.getElementById('modalCls'));
     const form = document.getElementById('formCls');
     form.classList.remove('was-validated');
-
-    // Reset selects multiples
     document.getElementById('clsEnseignants').querySelectorAll('option').forEach(o=>o.selected=false);
     document.getElementById('clsMatieres').querySelectorAll('option').forEach(o=>o.selected=false);
 
@@ -411,7 +407,6 @@ const Classes = {
       matiereIds
     };
 
-    // Vérifier doublon nom dans la même année
     const all = Storage.getAllIncludingArchived('classes');
     const dup = all.find(c=> c.nom.toLowerCase() === data.nom.toLowerCase()
       && c.anneeId === data.anneeId && c.id !== id);
@@ -436,7 +431,7 @@ const Classes = {
     if(!c) return;
     const effectif = Storage.getAll('eleves').filter(e=>e.classeId===id).length;
     if(effectif > 0){
-      if(!confirm(`La classe ${c.nom} contient ${effectif} élève(s).\nSupprimer quand même ? Les élèves devront être réaffectés.`)) return;
+      if(!confirm(`La classe ${c.nom} contient ${effectif} élève(s).\nSupprimer quand même ?`)) return;
     } else {
       if(!confirm(`Supprimer la classe ${c.nom} ?`)) return;
     }
@@ -454,7 +449,7 @@ const Classes = {
     const enseignants = ensIds.map(eid=>Storage.getById('enseignants', eid)).filter(Boolean);
     const matIds = c.matiereIds || [];
     const matieres = matIds.map(mid=>Storage.getById('matieres', mid)).filter(Boolean);
-    const param = Storage.read().parametres;
+    const param = Storage.read().parametres || {};
     const annee = Storage.getById('annees', c.anneeId);
 
     document.getElementById('modalDetailClsTitle').innerHTML =
@@ -492,17 +487,7 @@ const Classes = {
 
     document.getElementById('detailClsBody').innerHTML = `
       <div class="fiche-eleve">
-        <div class="fiche-head">
-          <div>
-            <h5 class="mb-0">${Utils.escapeHtml(param.etablissement)}</h5>
-            <small class="text-muted">${Utils.escapeHtml(param.adresse)}</small><br>
-            <small class="text-muted">Année ${annee?.libelle||'—'} — Classe ${Utils.escapeHtml(c.nom)} (${Utils.escapeHtml(c.cycle||'')})</small>
-          </div>
-          <div class="text-end">
-            <div class="badge bg-primary fs-6">${eleves.length} / ${c.effectifMax||40}</div>
-          </div>
-        </div>
-        <h6 class="text-center my-3 fw-bold" style="letter-spacing:1px">LISTE DES ÉLÈVES DE LA CLASSE</h6>
+        ${Utils.enteteDocument('LISTE DES ÉLÈVES — ' + c.nom)}
 
         <div class="row g-3 mb-3">
           <div class="col-md-6">
@@ -513,14 +498,14 @@ const Classes = {
           </div>
           <div class="col-md-6">
             <div class="info-block">
-              <div class="info-label">Enseignants affectés</div>
-              <div class="info-value">${enseignants.length?enseignants.map(e=>Utils.escapeHtml(e.prenom+' '+e.nom)).join(', '):'—'}</div>
+              <div class="info-label">Effectif</div>
+              <div class="info-value">${eleves.length} / ${c.effectifMax||40}</div>
             </div>
           </div>
           <div class="col-md-12">
             <div class="info-block">
-              <div class="info-label">Matières</div>
-              <div class="info-value">${matieres.length?matieres.map(m=>`<span class="badge-matricule me-1">${Utils.escapeHtml(m.nom)}</span>`).join(''):'—'}</div>
+              <div class="info-label">Enseignants affectés</div>
+              <div class="info-value">${enseignants.length?enseignants.map(e=>Utils.escapeHtml(e.prenom+' '+e.nom)).join(', '):'—'}</div>
             </div>
           </div>
         </div>
@@ -529,7 +514,7 @@ const Classes = {
 
         <div class="fiche-signatures mt-4">
           <div>Le Professeur principal<br><br><br>${prof?Utils.escapeHtml(prof.prenom+' '+prof.nom):'______________________'}</div>
-          <div>Le Directeur<br><br><br>${Utils.escapeHtml(param.directeur||'')}</div>
+          <div>Le Directeur<br><br><br>${Utils.escapeHtml(param.signDirecteur || param.directeur || '')}</div>
         </div>
       </div>
     `;
