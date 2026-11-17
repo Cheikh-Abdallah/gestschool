@@ -12,9 +12,14 @@ const ECUE = {
           <div class="page-title">Éléments Constitutifs (ECUE)</div>
           <div class="page-sub">CM, TD, TP rattachés aux Unités d'Enseignement</div>
         </div>
-        <button class="btn btn-primary btn-sm" id="btnAddECUE">
-          <i class="bi bi-plus-lg me-1"></i> Nouvel ECUE
-        </button>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-secondary btn-sm" id="btnExportCsvECUE">
+            <i class="bi bi-filetype-csv me-1"></i> Exporter CSV
+          </button>
+          <button class="btn btn-primary btn-sm" id="btnAddECUE">
+            <i class="bi bi-plus-lg me-1"></i> Nouvel ECUE
+          </button>
+        </div>
       </div>
 
       <div class="card-panel">
@@ -145,6 +150,10 @@ const ECUE = {
       };
     });
     document.getElementById('formECUE').onsubmit = (e)=>{ e.preventDefault(); this.save(); };
+
+    // ✅ Export CSV avec protection
+    const btnExport = document.getElementById('btnExportCsvECUE');
+    if(btnExport) btnExport.onclick = () => this.exportCsv();
   },
 
   getFiltered(){
@@ -265,16 +274,14 @@ const ECUE = {
       volumeTP: parseInt(document.getElementById('ecueTP').value) || 0
     };
 
-    let created;
     if(id){
       Storage.update('ecue', id, data);
       Notify.toast('ECUE modifié.', 'success');
     } else {
-      created = Storage.create('ecue', data);
+      Storage.create('ecue', data);
       Notify.toast('ECUE créé.', 'success');
     }
 
-    // Synchroniser ue.ecueIds
     this.syncUE();
 
     bootstrap.Modal.getInstance(document.getElementById('modalECUE')).hide();
@@ -298,5 +305,24 @@ const ECUE = {
     this.syncUE();
     Notify.toast('ECUE supprimé.', 'warning');
     this.refresh();
+  },
+
+  exportCsv(){
+    const list = this.getFiltered();
+    const rows = [['Nom','UE','Coefficient','Volume CM','Volume TD','Volume TP']];
+    list.forEach(e=>{
+      const ue = Storage.getById('ue', e.ueId);
+      rows.push([
+        e.nom, ue?ue.code+' — '+ue.nom:'',
+        e.coefficient||1, e.volumeCM||0, e.volumeTD||0, e.volumeTP||0
+      ]);
+    });
+    const csv = rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\n');
+    const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'ecue_'+new Date().toISOString().slice(0,10)+'.csv';
+    a.click();
+    Notify.toast('Export CSV généré.', 'success');
   }
 };
