@@ -1,7 +1,5 @@
 /**
  * Module 7 : Gestion des absences et retards.
- * Enregistrement, justification, filtres, suivi par classe,
- * rapports imprimables.
  */
 const Absences = {
   state: {
@@ -65,7 +63,6 @@ const Absences = {
         </div>
       </div>
 
-      <!-- Suivi par classe -->
       <div class="card-panel">
         <h6><i class="bi bi-bar-chart-fill"></i> Suivi des absences par classe</h6>
         <div class="table-responsive">
@@ -86,7 +83,6 @@ const Absences = {
         </div>
       </div>
 
-      <!-- Liste détaillée -->
       <div class="card-panel">
         <h6><i class="bi bi-list-ul"></i> Historique des absences et retards</h6>
         <div class="row g-2 mb-3">
@@ -171,7 +167,6 @@ const Absences = {
                     <select class="form-select" id="absEleve" required></select>
                     <div class="invalid-feedback">Élève obligatoire.</div>
                   </div>
-
                   <div class="col-md-6">
                     <label class="form-label">Type *</label>
                     <select class="form-select" id="absType" required>
@@ -184,7 +179,6 @@ const Absences = {
                     <input type="date" class="form-control" id="absDate" required>
                     <div class="invalid-feedback">Date obligatoire.</div>
                   </div>
-
                   <div class="col-md-6">
                     <label class="form-label">Heure (retard)</label>
                     <input type="time" class="form-control" id="absHeure">
@@ -193,7 +187,6 @@ const Absences = {
                     <label class="form-label">Motif</label>
                     <input class="form-control" id="absMotif" placeholder="Maladie, RDV…">
                   </div>
-
                   <div class="col-md-12">
                     <label class="form-label">Justification</label>
                     <select class="form-select" id="absJustifie">
@@ -275,15 +268,25 @@ const Absences = {
     });
 
     document.getElementById('formAbs').onsubmit = (e)=>{ e.preventDefault(); this.save(); };
-    document.getElementById('btnRapportAbs').onclick = ()=> this.openRapport();
-    document.getElementById('btnPrintRapportAbs').onclick = ()=> window.print();
-    document.getElementById('btnExportCsvAbs').onclick = ()=> this.exportCsv();
 
-    // Recharger élèves selon classe
+    // ✅ Impression isolée
+    document.getElementById('btnPrintRapportAbs').onclick = ()=>{
+      document.body.classList.add('printing-doc');
+      setTimeout(()=>{
+        window.print();
+        setTimeout(()=> document.body.classList.remove('printing-doc'), 500);
+      }, 50);
+    };
+
+    document.getElementById('btnRapportAbs').onclick = ()=> this.openRapport();
+
+    // ✅ Export CSV protégé
+    const btnExport = document.getElementById('btnExportCsvAbs');
+    if(btnExport) btnExport.onclick = () => this.exportCsv();
+
     document.getElementById('absClasse').onchange = ()=>{
       this.populateElevesSelect();
     };
-    // Afficher/masquer le détail de justification
     document.getElementById('absJustifie').onchange = (e)=>{
       const wrap = document.getElementById('absJustifDetailWrap');
       wrap.style.display = e.target.value === 'oui' ? 'block' : 'none';
@@ -315,7 +318,6 @@ const Absences = {
   getFiltered(){
     let list = Storage.getAll('absences');
     const s = this.state;
-
     if(s.filtreClasse){
       list = list.filter(a=>{
         const el = Storage.getById('eleves', a.eleveId);
@@ -358,14 +360,12 @@ const Absences = {
   },
 
   refresh(){
-    // Stats globales
     const all = Storage.getAll('absences');
     document.getElementById('statAbsTotal').textContent = all.filter(a=>a.type==='absence').length;
     document.getElementById('statRetards').textContent = all.filter(a=>a.type==='retard').length;
     document.getElementById('statJustifiees').textContent = all.filter(a=>a.justifie).length;
     document.getElementById('statNonJust').textContent = all.filter(a=>!a.justifie).length;
 
-    // Suivi par classe
     const classes = Storage.getAll('classes');
     const tbodySuivi = document.getElementById('tbodySuiviCls');
     tbodySuivi.innerHTML = classes.map(c=>{
@@ -388,12 +388,10 @@ const Absences = {
       </tr>`;
     }).join('') || `<tr><td colspan="7" class="text-center text-muted small py-3">Aucune classe.</td></tr>`;
 
-    // Liste détaillée
     const list = this.getFiltered();
     const total = list.length;
     const totalPages = Math.max(1, Math.ceil(total / this.state.pageSize));
     if(this.state.page > totalPages) this.state.page = totalPages;
-
     const start = (this.state.page - 1) * this.state.pageSize;
     const pageList = list.slice(start, start + this.state.pageSize);
 
@@ -522,22 +520,15 @@ const Absences = {
   },
 
   openRapport(){
-    const param = Storage.read().parametres;
+    const param = Storage.read().parametres || {};
     const annee = Storage.getAllIncludingArchived('annees').find(a=>a.active);
     const classes = Storage.getAll('classes');
     const all = Storage.getAll('absences');
 
     let html = `
       <div class="fiche-eleve">
-        <div class="fiche-head">
-          <div>
-            <h5 class="mb-0">${Utils.escapeHtml(param.etablissement)}</h5>
-            <small class="text-muted">${Utils.escapeHtml(param.adresse)}</small><br>
-            <small class="text-muted">Année ${annee?.libelle||'—'} — Généré le ${Utils.formatDate(new Date().toISOString())}</small>
-          </div>
-        </div>
-        <h6 class="text-center my-3 fw-bold" style="letter-spacing:1px">RAPPORT D'ABSENCES ET RETARDS</h6>
-        <table class="table table-bordered table-sm">
+        ${Utils.enteteDocument('RAPPORT D\'ABSENCES ET RETARDS')}
+        <table class="table table-bordered table-sm mt-3">
           <thead class="table-light">
             <tr>
               <th>Classe</th><th>Effectif</th><th>Absences</th><th>Retards</th>
@@ -561,7 +552,6 @@ const Absences = {
     });
     html += `</tbody></table>`;
 
-    // Top 10 élèves les plus absents
     const eleveCount = {};
     all.filter(a=>a.type==='absence').forEach(a=>{
       eleveCount[a.eleveId] = (eleveCount[a.eleveId]||0)+1;
@@ -588,7 +578,7 @@ const Absences = {
     html += `
         <div class="fiche-signatures mt-4">
           <div>Le Surveillant<br><br><br>______________________</div>
-          <div>Le Directeur<br><br><br>${Utils.escapeHtml(param.directeur||'')}</div>
+          <div>Le Directeur<br><br><br>${Utils.escapeHtml(param.signDirecteur || param.directeur || '')}</div>
         </div>
       </div>
     `;
