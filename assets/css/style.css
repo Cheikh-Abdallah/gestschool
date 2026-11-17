@@ -195,3 +195,39 @@ a{text-decoration:none;}
   transform: scale(1.02);
   box-shadow: 0 8px 24px rgba(29, 78, 216, 0.15);
 }
+
+
+/* ============================================================
+   SIDEBAR — Séparateurs et items
+   ============================================================ */
+.nav-separator {
+  padding: 0.85rem 0.75rem 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: rgba(203, 213, 225, 0.6);
+  margin-top: 0.25rem;
+  user-select: none;
+}
+.nav-separator:first-child {
+  margin-top: 0;
+}
+
+/* Amélioration visuelle des items */
+.nav-item {
+  position: relative;
+}
+
+/* Item actif : barre verticale bleue à gauche */
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: #60A5FA;
+  border-radius: 0 3px 3px 0;
+}
