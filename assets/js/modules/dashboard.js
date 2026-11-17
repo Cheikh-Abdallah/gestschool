@@ -1,18 +1,19 @@
 /**
  * Module 1 : Tableau de bord.
- * Toutes les statistiques sont calculées à partir des données LocalStorage.
+ * Deux vues : mode secondaire (élèves/classes) et mode supérieur (étudiants/filières).
  */
 const Dashboard = {
   charts: [],
 
   render(container){
-      // ══════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
     // MODE SUPÉRIEUR : dashboard universitaire
     // ══════════════════════════════════════════════════════════
     if(Utils.isSuperieur()){
       this.renderSuperieur(container);
       return;
     }
+
     this.destroyCharts();
     const annee = this.activeAnnee();
     const eleves = this.elevesAnnee(annee.id);
@@ -22,28 +23,21 @@ const Dashboard = {
     const frais = Storage.getAll('frais').filter(f=>f.anneeId===annee.id);
     const absences = Storage.getAll('absences').filter(a=>a.anneeId===annee.id);
     const notes = Storage.getAll('notes').filter(n=>n.anneeId===annee.id);
-    const evaluations = Storage.getAll('evaluations').filter(e=>e.anneeId===annee.id);
 
-    // --- Stats ---
     const totalEleves = eleves.length;
     const garcons = eleves.filter(e=>e.sexe==='M').length;
     const filles = eleves.filter(e=>e.sexe==='F').length;
 
-    // Présents / absents aujourd'hui (approximation à partir des absences du jour)
     const today = new Date().toISOString().slice(0,10);
     const absentsAujourdhui = new Set(absences.filter(a=>a.date===today && a.type==='absence').map(a=>a.eleveId)).size;
     const presents = Math.max(0, totalEleves - absentsAujourdhui);
 
-    // Finance
     const totalAttendu = this.calculTotalAttendu(eleves, frais);
     const totalEncaisse = paiements.reduce((s,p)=>s+(p.montantPaye||0),0);
     const totalImpaye = Math.max(0, totalAttendu - totalEncaisse);
     const tauxRecouv = totalAttendu ? Math.round((totalEncaisse/totalAttendu)*100) : 0;
-
-    // Moyenne générale
     const moyGen = notes.length ? (notes.reduce((s,n)=>s+(n.valeur||0),0)/notes.length) : 0;
 
-    // --- HTML ---
     container.innerHTML = `
       <div class="page-title">Bonjour ${Utils.escapeHtml(Auth.current()?.nom.split(' ')[0]||'')} 👋</div>
       <div class="page-sub">Tableau de bord · Année ${annee.libelle} · ${annee.periodes[0]}</div>
@@ -123,10 +117,7 @@ const Dashboard = {
       </div>
     `;
 
-    // --- Graphiques ---
     this.renderCharts({eleves, classes, paiements, notes});
-
-    // --- Listes ---
     this.renderLists({eleves, paiements, absences});
   },
 
@@ -151,7 +142,6 @@ const Dashboard = {
   },
 
   calculTotalAttendu(eleves, frais){
-    // Pour chaque élève : frais inscription de sa classe + toutes les mensualités de sa classe
     let total = 0;
     eleves.forEach(el=>{
       const fraisClasse = frais.filter(f=>f.classeId===el.classeId);
@@ -166,7 +156,6 @@ const Dashboard = {
   },
 
   renderCharts({eleves, classes, paiements, notes}){
-    // 1. Évolution des inscriptions par mois (Oct → Nov → Déc ...)
     const moisCount = [0,0,0,0,0,0,0,0,0,0,0,0];
     eleves.forEach(e=>{
       if(e.dateInscription){
@@ -185,7 +174,6 @@ const Dashboard = {
       }]
     });
 
-    // 2. Répartition sexes
     const g = eleves.filter(e=>e.sexe==='M').length;
     const f = eleves.filter(e=>e.sexe==='F').length;
     this.chart('chartSexes','doughnut',{
@@ -193,7 +181,6 @@ const Dashboard = {
       datasets:[{data:[g,f],backgroundColor:['#1D4ED8','#F59E0B'],borderWidth:0}]
     },{cutout:'65%'});
 
-    // 3. Répartition par classe
     const dataCls = classes.map(c=>({
       nom:c.nom,
       count:eleves.filter(e=>e.classeId===c.id).length
@@ -203,7 +190,6 @@ const Dashboard = {
       datasets:[{label:'Élèves',data:dataCls.map(x=>x.count),backgroundColor:'#1D4ED8',borderRadius:6}]
     },{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}});
 
-    // 4. Paiements mensuels
     const moisPay = [0,0,0,0,0,0,0,0,0,0,0,0];
     paiements.forEach(p=>{
       if(p.date){
@@ -220,7 +206,6 @@ const Dashboard = {
       }]
     },{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}});
 
-    // 5. Résultats scolaires : distribution des notes
     const buckets = {'0-5':0,'5-10':0,'10-12':0,'12-15':0,'15-20':0};
     notes.forEach(n=>{
       const v = n.valeur||0;
@@ -256,46 +241,55 @@ const Dashboard = {
   },
 
   renderLists({eleves, paiements, absences}){
-    // Dernières inscriptions
     const sortedEl = [...eleves].sort((a,b)=>(b.dateInscription||'').localeCompare(a.dateInscription||'')).slice(0,5);
-    document.getElementById('lastInscriptions').innerHTML = sortedEl.map(e=>{
-      const cls = Storage.getById('classes', e.classeId);
-      return `<li>
-        <div class="mini-avatar">${e.prenom[0]}${e.nom[0]}</div>
-        <div><strong>${Utils.escapeHtml(e.prenom+' '+e.nom)}</strong>
-          <div class="small text-muted">${cls?cls.nom:'—'}</div></div>
-        <span class="mini-meta">${Utils.formatDate(e.dateInscription)}</span>
-      </li>`;
-    }).join('') || '<li class="text-muted small">Aucune inscription.</li>';
+    const elInscr = document.getElementById('lastInscriptions');
+    if(elInscr){
+      elInscr.innerHTML = sortedEl.map(e=>{
+        const cls = Storage.getById('classes', e.classeId);
+        return `<li>
+          <div class="mini-avatar">${e.prenom[0]}${e.nom[0]}</div>
+          <div><strong>${Utils.escapeHtml(e.prenom+' '+e.nom)}</strong>
+            <div class="small text-muted">${cls?cls.nom:'—'}</div></div>
+          <span class="mini-meta">${Utils.formatDate(e.dateInscription)}</span>
+        </li>`;
+      }).join('') || '<li class="text-muted small">Aucune inscription.</li>';
+    }
 
-    // Derniers paiements
     const sortedPay = [...paiements].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,5);
-    document.getElementById('lastPaiements').innerHTML = sortedPay.map(p=>{
-      const el = Storage.getById('eleves', p.eleveId);
-      return `<li>
-        <div class="mini-avatar"><i class="bi bi-cash"></i></div>
-        <div><strong>${Utils.formatFCFA(p.montantPaye)}</strong>
-          <div class="small text-muted">${el?Utils.escapeHtml(el.prenom+' '+el.nom):'—'} · ${p.mode}</div></div>
-        <span class="mini-meta">${Utils.formatDate(p.date)}</span>
-      </li>`;
-    }).join('') || '<li class="text-muted small">Aucun paiement.</li>';
+    const elPay = document.getElementById('lastPaiements');
+    if(elPay){
+      elPay.innerHTML = sortedPay.map(p=>{
+        const el = Storage.getById('eleves', p.eleveId);
+        return `<li>
+          <div class="mini-avatar"><i class="bi bi-cash"></i></div>
+          <div><strong>${Utils.formatFCFA(p.montantPaye)}</strong>
+            <div class="small text-muted">${el?Utils.escapeHtml(el.prenom+' '+el.nom):'—'} · ${p.mode}</div></div>
+          <span class="mini-meta">${Utils.formatDate(p.date)}</span>
+        </li>`;
+      }).join('') || '<li class="text-muted small">Aucun paiement.</li>';
+    }
 
-    // Absences récentes
     const sortedAbs = [...absences].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,5);
-    document.getElementById('lastAbsences').innerHTML = sortedAbs.map(a=>{
-      const el = Storage.getById('eleves', a.eleveId);
-      return `<li>
-        <div class="mini-avatar"><i class="bi bi-${a.type==='retard'?'clock':'x-circle'}"></i></div>
-        <div><strong>${el?Utils.escapeHtml(el.prenom+' '+el.nom):'—'}</strong>
-          <div class="small text-muted">${a.type} · ${a.justifie?'justifié':'non justifié'}</div></div>
-        <span class="mini-meta">${Utils.formatDate(a.date)}</span>
-      </li>`;
-    }).join('') || '<li class="text-muted small">Aucune absence.</li>';
+    const elAbs = document.getElementById('lastAbsences');
+    if(elAbs){
+      elAbs.innerHTML = sortedAbs.map(a=>{
+        const el = Storage.getById('eleves', a.eleveId);
+        return `<li>
+          <div class="mini-avatar"><i class="bi bi-${a.type==='retard'?'clock':'x-circle'}"></i></div>
+          <div><strong>${el?Utils.escapeHtml(el.prenom+' '+el.nom):'—'}</strong>
+            <div class="small text-muted">${a.type} · ${a.justifie?'justifié':'non justifié'}</div></div>
+          <span class="mini-meta">${Utils.formatDate(a.date)}</span>
+        </li>`;
+      }).join('') || '<li class="text-muted small">Aucune absence.</li>';
+    }
   },
-    // ============================================================
+
+  // ============================================================
   // DASHBOARD MODE SUPÉRIEUR
   // ============================================================
   renderSuperieur(container){
+    this.destroyCharts();
+
     const annee = Storage.getAllIncludingArchived('annees').find(a=>a.active);
     const etudiants = Storage.getAll('eleves').filter(e=>e.typeEtudiant === 'superieur');
     const enseignants = Storage.getAll('enseignants');
@@ -305,11 +299,9 @@ const Dashboard = {
     const ues = Storage.getAll('ue');
     const ecues = Storage.getAll('ecue');
 
-    // Stats globales
     const garcons = etudiants.filter(e=>e.sexe === 'M').length;
     const filles = etudiants.filter(e=>e.sexe === 'F').length;
 
-    // Taux de réussite global (session S1)
     let totalValides = 0, totalEtudiantsEvalues = 0, totalCreditsAcquis = 0, totalCredits = 0;
     groupes.forEach(g=>{
       if(typeof NotesLMD !== 'undefined'){
@@ -326,7 +318,6 @@ const Dashboard = {
     });
     const tauxReussite = totalEtudiantsEvalues ? Math.round(totalValides/totalEtudiantsEvalues*100) : 0;
 
-    // Finance (réutilise le calcul existant)
     const paiements = Storage.getAll('paiements').filter(p=>p.statut !== 'annulé');
     const frais = Storage.getAll('frais');
     let attendu = 0;
@@ -338,7 +329,6 @@ const Dashboard = {
     const impaye = Math.max(0, attendu - encaisse);
     const tauxRecouv = attendu ? Math.round(encaisse/attendu*100) : 0;
 
-    // Répartition par filière
     const parFiliere = filieres.map(f=>{
       const niveauxFil = niveaux.filter(n=>n.filiereId === f.id);
       const grpIds = groupes.filter(g=>niveauxFil.some(n=>n.id === g.niveauId)).map(g=>g.id);
@@ -348,7 +338,6 @@ const Dashboard = {
       };
     });
 
-    // Répartition par niveau
     const parNiveau = {};
     groupes.forEach(g=>{
       const niv = Storage.getById('niveaux', g.niveauId);
@@ -357,7 +346,6 @@ const Dashboard = {
       parNiveau[code] = (parNiveau[code]||0) + etudiants.filter(e=>e.classeId === g.id).length;
     });
 
-    // Derniers paiements
     const derniersPaiements = paiements.filter(p=>etudiants.some(e=>e.id===p.eleveId))
       .sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,5);
 
@@ -440,10 +428,7 @@ const Dashboard = {
       </div>
     `;
 
-    // Graphiques
-    this.destroyCharts();
     setTimeout(()=>{
-      // Camembert filières
       this.chart('chartFilieres', 'doughnut', {
         labels: parFiliere.map(p=>p.filiere.code),
         datasets: [{
@@ -453,7 +438,6 @@ const Dashboard = {
         }]
       }, {cutout:'65%'});
 
-      // Barres niveaux
       this.chart('chartNiveaux', 'bar', {
         labels: Object.keys(parNiveau),
         datasets: [{
