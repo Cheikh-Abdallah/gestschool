@@ -13,9 +13,17 @@ const Niveaux = {
           <div class="page-title">Niveaux</div>
           <div class="page-sub">L1, L2, L3, M1, M2, BTS1…</div>
         </div>
-        <button class="btn btn-primary btn-sm" id="btnAddNiv">
-          <i class="bi bi-plus-lg me-1"></i> Nouveau niveau
-        </button>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-success btn-sm" id="btnImportNiveaux">
+            <i class="bi bi-file-earmark-excel me-1"></i> Importer Excel
+          </button>
+          <button class="btn btn-outline-secondary btn-sm" id="btnExportCsvNiv">
+            <i class="bi bi-filetype-csv me-1"></i> Exporter CSV
+          </button>
+          <button class="btn btn-primary btn-sm" id="btnAddNiv">
+            <i class="bi bi-plus-lg me-1"></i> Nouveau niveau
+          </button>
+        </div>
       </div>
 
       <div class="card-panel">
@@ -117,10 +125,8 @@ const Niveaux = {
 
   populateFiliereSelect(){
     const filieres = Storage.getAll('filieres');
-    // Select de la modale
     document.getElementById('nivFiliere').innerHTML = '<option value="">— Choisir —</option>' +
       filieres.map(f=>`<option value="${f.id}">${Utils.escapeHtml(f.code+' — '+f.nom)}</option>`).join('');
-    // Filtre
     document.getElementById('fFiliereNiv').innerHTML = '<option value="">Toutes filières</option>' +
       filieres.map(f=>`<option value="${f.id}">${Utils.escapeHtml(f.code+' — '+f.nom)}</option>`).join('');
   },
@@ -151,6 +157,14 @@ const Niveaux = {
         this.refresh();
       };
     });
+    
+    // ✅ Boutons avec protection
+    const btnImport = document.getElementById('btnImportNiveaux');
+    if(btnImport) btnImport.onclick = () => ImportExcel.open('niveaux');
+    
+    const btnExport = document.getElementById('btnExportCsvNiv');
+    if(btnExport) btnExport.onclick = () => this.exportCsv();
+    
     document.getElementById('formNiv').onsubmit = (e)=>{ e.preventDefault(); this.save(); };
   },
 
@@ -305,5 +319,24 @@ const Niveaux = {
     Storage.remove('niveaux', id, true);
     Notify.toast('Niveau supprimé.', 'warning');
     this.refresh();
+  },
+
+  exportCsv(){
+    const list = this.getFiltered();
+    const rows = [['Code','Libellé','Filière','Ordre','Crédits requis','Frais scolarité']];
+    list.forEach(n=>{
+      const filiere = Storage.getById('filieres', n.filiereId);
+      rows.push([
+        n.code, n.libelle, filiere?filiere.code:'',
+        n.ordre||1, n.creditsRequis||60, n.fraisScolarite||0
+      ]);
+    });
+    const csv = rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\n');
+    const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'niveaux_'+new Date().toISOString().slice(0,10)+'.csv';
+    a.click();
+    Notify.toast('Export CSV généré.', 'success');
   }
 };
