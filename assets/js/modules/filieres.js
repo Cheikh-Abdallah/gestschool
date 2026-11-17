@@ -9,6 +9,9 @@ const Filieres = {
     this.container = container;
     container.innerHTML = `
       <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <button class="btn btn-outline-success btn-sm" id="btnImportFilieres">
+  <i class="bi bi-file-earmark-excel me-1"></i> Importer Excel
+</button>
         <div>
           <div class="page-title">Filières</div>
           <div class="page-sub">Licences, Masters, BTS, DUT, BT…</div>
@@ -148,6 +151,7 @@ const Filieres = {
         this.refresh();
       };
     });
+    document.getElementById('btnImportFilieres').onclick = () => ImportExcel.open('filieres');
     document.getElementById('formFil').onsubmit = (e)=>{ e.preventDefault(); this.save(); };
   },
 
