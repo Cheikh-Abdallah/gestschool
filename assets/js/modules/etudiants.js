@@ -25,13 +25,16 @@ const Etudiants = {
           <div class="page-sub">Inscriptions universitaires et dossiers étudiants</div>
         </div>
         <div class="d-flex gap-2">
-          <button class="btn btn-outline-secondary btn-sm" id="btnExportCsvEtu">
-            <i class="bi bi-filetype-csv me-1"></i> Exporter CSV
-          </button>
-          <button class="btn btn-primary btn-sm" id="btnAddEtu">
-            <i class="bi bi-plus-lg me-1"></i> Nouvel étudiant
-          </button>
-        </div>
+  <button class="btn btn-outline-success btn-sm" id="btnImportEtudiants">
+    <i class="bi bi-file-earmark-excel me-1"></i> Importer Excel
+  </button>
+  <button class="btn btn-outline-secondary btn-sm" id="btnExportCsvEtu">
+    <i class="bi bi-filetype-csv me-1"></i> Exporter CSV
+  </button>
+  <button class="btn btn-primary btn-sm" id="btnAddEtu">
+    <i class="bi bi-plus-lg me-1"></i> Nouvel étudiant
+  </button>
+</div>
       </div>
 
       <div class="card-panel">
