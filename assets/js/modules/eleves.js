@@ -24,6 +24,9 @@ const Eleves = {
           <div class="page-sub">Inscriptions, fiches individuelles et réinscriptions</div>
         </div>
         <div class="d-flex gap-2">
+          <button class="btn btn-outline-success btn-sm" id="btnImportEleves">
+            <i class="bi bi-file-earmark-excel me-1"></i> Importer Excel
+          </button>
           <button class="btn btn-outline-secondary btn-sm" id="btnExportCsv">
             <i class="bi bi-filetype-csv me-1"></i> Exporter CSV
           </button>
@@ -254,15 +257,9 @@ const Eleves = {
         this.refresh();
       };
     });
-
+    document.getElementById('btnImportEleves').onclick = () => ImportExcel.open('eleves');
     document.getElementById('formEleve').onsubmit = (e)=>{ e.preventDefault(); this.save(); };
-    document.getElementById('btnPrintFiche').onclick = ()=>{
-  document.body.classList.add('printing-doc');
-  setTimeout(()=>{
-    window.print();
-    setTimeout(()=> document.body.classList.remove('printing-doc'), 500);
-  }, 50);
-};
+    document.getElementById('btnPrintFiche').onclick = ()=> window.print();
   },
 
   populateFilters(){
@@ -508,14 +505,21 @@ const Eleves = {
     if(!e) return;
     const classe = Storage.getById('classes', e.classeId);
     const annee = Storage.getById('annees', e.anneeId);
-    const param = Storage.read().parametres || {};
+    const param = Storage.read().parametres;
     const elevesClasse = Storage.getAll('eleves').filter(x=>x.classeId===e.classeId && x.anneeId===e.anneeId);
     const rang = elevesClasse.sort((a,b)=>a.nom.localeCompare(b.nom)).findIndex(x=>x.id===e.id)+1;
 
     document.getElementById('ficheBody').innerHTML = `
       <div class="fiche-eleve">
-        ${Utils.enteteDocument('FICHE INDIVIDUELLE DE L\'ÉLÈVE')}
-
+        <div class="fiche-head">
+          <div>
+            <h5 class="mb-0">${Utils.escapeHtml(param.etablissement)}</h5>
+            <small class="text-muted">${Utils.escapeHtml(param.adresse)}</small><br>
+            <small class="text-muted">Tél. ${Utils.escapeHtml(param.telephone)} — Année ${annee?.libelle||'—'}</small>
+          </div>
+          <div class="fiche-photo">${e.photo?`<img src="${Utils.escapeHtml(e.photo)}">`:`<i class="bi bi-person"></i>`}</div>
+        </div>
+        <h6 class="text-center my-3 fw-bold" style="letter-spacing:1px">FICHE INDIVIDUELLE DE L'ÉLÈVE</h6>
         <table class="table table-bordered table-sm fiche-table">
           <tbody>
             <tr><th style="width:35%">Matricule</th><td>${Utils.escapeHtml(e.matricule)}</td></tr>
@@ -536,9 +540,8 @@ const Eleves = {
             <tr><th>Infos médicales</th><td>${Utils.escapeHtml(e.infosMed||'—')}</td></tr>
           </tbody>
         </table>
-
         <div class="fiche-signatures">
-          <div>Le Directeur<br><br><br>${Utils.escapeHtml(param.signDirecteur || param.directeur || '')}</div>
+          <div>Le Directeur<br><br><br>${Utils.escapeHtml(param.directeur||'')}</div>
           <div>Signature & Cachet<br><br><br>______________________</div>
         </div>
       </div>
