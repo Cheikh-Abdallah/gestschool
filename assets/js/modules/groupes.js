@@ -320,4 +320,118 @@ const Groupes = {
       if(niveau){
         document.getElementById('grpFiliere').value = niveau.filiereId;
         const niveaux = Storage.getAll('niveaux').filter(n=>n.filiereId === niveau.filiereId);
-        document.getElementById('grpNiveau
+        document.getElementById('grpNiveau').innerHTML = niveaux.map(n=>`<option value="${n.id}" ${n.id===niveau.id?'selected':''}>${Utils.escapeHtml(n.libelle)}</option>`).join('');
+      }
+    } else {
+      form.reset();
+      document.getElementById('modalGrpTitle').textContent = 'Nouveau groupe';
+      document.getElementById('grpId').value = '';
+      document.getElementById('grpEffectifMax').value = 40;
+      document.getElementById('grpNiveau').innerHTML = '<option value="">— Choisir la filière d\'abord —</option>';
+    }
+    modal.show();
+  },
+
+  save(){
+    const form = document.getElementById('formGrp');
+    form.classList.add('was-validated');
+    if(!form.checkValidity()) return;
+
+    const id = document.getElementById('grpId').value;
+    const anneeActive = Storage.getAllIncludingArchived('annees').find(a=>a.active);
+    const data = {
+      niveauId: document.getElementById('grpNiveau').value,
+      nom: document.getElementById('grpNom').value.trim(),
+      effectifMax: parseInt(document.getElementById('grpEffectifMax').value) || 40,
+      profPrincipalId: document.getElementById('grpProf').value || null,
+      anneeId: anneeActive?.id
+    };
+
+    if(id){
+      Storage.update('groupes', id, data);
+      Notify.toast('Groupe modifié.', 'success');
+    } else {
+      Storage.create('groupes', data);
+      Notify.toast('Groupe créé.', 'success');
+    }
+    bootstrap.Modal.getInstance(document.getElementById('modalGrp')).hide();
+    this.refresh();
+  },
+
+  archive(id){
+    const g = Storage.getById('groupes', id);
+    if(!g) return;
+    const effectif = Storage.getAll('eleves').filter(e=>e.classeId === id).length;
+    if(effectif > 0){
+      Notify.toast(`Impossible : ${effectif} étudiant(s) dans ce groupe.`, 'danger');
+      return;
+    }
+    if(!confirm(`Supprimer le groupe "${g.nom}" ?`)) return;
+    Storage.remove('groupes', id, true);
+    Notify.toast('Groupe supprimé.', 'warning');
+    this.refresh();
+  },
+
+  showDetail(id){
+    const g = Storage.getById('groupes', id);
+    if(!g) return;
+    const niveau = Storage.getById('niveaux', g.niveauId);
+    const filiere = niveau ? Storage.getById('filieres', niveau.filiereId) : null;
+    const prof = Storage.getById('enseignants', g.profPrincipalId);
+    const etudiants = Storage.getAll('eleves').filter(e=>e.classeId === id).sort((a,b)=>a.nom.localeCompare(b.nom));
+    const ues = Storage.getAll('ue').filter(u=>u.niveauId === g.niveauId);
+
+    document.getElementById('modalDetailGrpTitle').textContent = g.nom;
+
+    let etuHtml = '';
+    if(etudiants.length){
+      etuHtml = `<div class="table-responsive"><table class="table table-sm table-bordered">
+        <thead class="table-light"><tr><th>#</th><th>Matricule</th><th>Nom</th><th>Prénom</th><th>Sexe</th></tr></thead>
+        <tbody>${etudiants.map((e,i)=>`<tr>
+          <td>${i+1}</td>
+          <td>${Utils.escapeHtml(e.matricule)}</td>
+          <td>${Utils.escapeHtml(e.nom)}</td>
+          <td>${Utils.escapeHtml(e.prenom)}</td>
+          <td>${e.sexe}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>`;
+    } else {
+      etuHtml = '<p class="text-muted small">Aucun étudiant dans ce groupe.</p>';
+    }
+
+    document.getElementById('detailGrpBody').innerHTML = `
+      <div class="row g-3 mb-3">
+        <div class="col-md-4"><div class="info-block"><div class="info-label">Filière</div><div class="info-value">${filiere?Utils.escapeHtml(filiere.nom):'—'}</div></div></div>
+        <div class="col-md-4"><div class="info-block"><div class="info-label">Niveau</div><div class="info-value">${niveau?Utils.escapeHtml(niveau.libelle):'—'}</div></div></div>
+        <div class="col-md-4"><div class="info-block"><div class="info-label">Responsable</div><div class="info-value">${prof?Utils.escapeHtml(prof.prenom+' '+prof.nom):'—'}</div></div></div>
+      </div>
+      <h6 class="fw-bold">Étudiants (${etudiants.length})</h6>
+      ${etuHtml}
+      <h6 class="fw-bold mt-3">UE du niveau (${ues.length})</h6>
+      <div>${ues.map(u=>`<span class="badge-matricule me-1 mb-1">${Utils.escapeHtml(u.code+' — '+u.nom)}</span>`).join('') || '—'}</div>
+    `;
+    new bootstrap.Modal(document.getElementById('modalDetailGrp')).show();
+  },
+
+  exportCsv(){
+    const list = this.getFiltered();
+    const rows = [['Groupe','Niveau','Filière','Effectif','Max','Responsable']];
+    list.forEach(g=>{
+      const niveau = Storage.getById('niveaux', g.niveauId);
+      const filiere = niveau ? Storage.getById('filieres', niveau.filiereId) : null;
+      const prof = Storage.getById('enseignants', g.profPrincipalId);
+      const effectif = Storage.getAll('eleves').filter(e=>e.classeId===g.id).length;
+      rows.push([
+        g.nom, niveau?niveau.libelle:'', filiere?filiere.code:'',
+        effectif, g.effectifMax||40, prof?prof.prenom+' '+prof.nom:''
+      ]);
+    });
+    const csv = rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\n');
+    const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'groupes_'+new Date().toISOString().slice(0,10)+'.csv';
+    a.click();
+    Notify.toast('Export CSV généré.', 'success');
+  }
+};
